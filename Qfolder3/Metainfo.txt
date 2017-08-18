@@ -1,0 +1,11 @@
+Name of Quantlet: NAMEN EINTRAGEN!!!
+
+Description: First part of the descriptive statistics.
+
+Keywords: descriptive statistics, population pyramid,  boxplot, 
+
+Author: Felix Boenisch, Nicole Hermann, Max Reinhardt
+
+See also: HIER DEN NAMEN DER ANDEREN QUANTLETS REINMACHEN
+
+Submitted:  friday 18.08.2017
