@@ -1,6 +1,6 @@
 Name of Quantlet: SPLSumTable
 
-Published in: Union Wage Effects in Germany - Implications for the Wage Distribution
+Published in:     Union Wage Effects in Germany - Implications for the Wage Distribution
 
 Description:      Third part of the descriptive statistics.
 
