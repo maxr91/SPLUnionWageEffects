@@ -18,7 +18,7 @@ See also:         SPLDummyRespond, SPLContract, SPLFreqPlot, SPLQuantPlot, SPLSu
 
 Submitted:        friday 18.08.2017, by Felix Boenisch, Nicole Hermann, Max Reinhardt
 
-Output:		Figure: Comparison of OLS Regression Results and Conditional Quantile Regression Results
+Output:		  Figure: Comparison of OLS Regression Results and Conditional Quantile Regression Results
 
 ```
 ![Picture1](Rplot01.png) 
