@@ -17,6 +17,9 @@ Author:           Felix Boenisch, Nicole Hermann, Max Reinhardt
 See also:         SPLDummyRespond, SPLContract, SPLFreqPlot, SPLQuantPlot, SPLSumTable
 
 Submitted:        friday 18.08.2017, by Felix Boenisch, Nicole Hermann, Max Reinhardt
+
+Output:		Figure: Comparison of OLS Regression Results and Conditional Quantile Regression Results
+
 ```
 ![Picture1](Rplot01.png) 
 
