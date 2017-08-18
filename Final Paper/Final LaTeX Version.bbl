@@ -1,0 +1,72 @@
+\begin{thebibliography}{12}
+\newcommand{\enquote}[1]{``#1''}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+
+\bibitem[\protect\citeauthoryear{Addison, Bryson, Teixeira, Pahnke, and
+  Bellmann}{Addison et~al.}{2013}]{Addison&Bryson&Teixeira&Pahnke6Bellmann:13}
+\textsc{Addison, J., A.~Bryson, P.~Teixeira, A.~Pahnke, and L.~Bellmann}
+  (2013): \enquote{The Extent of Collective Bargaining and Workplace
+  Representation: Transistions between States and their Determinants. A
+  Comparative Analysis of germany and Great Britain.} \emph{Scottish Journal of
+  Political Economy}, 60, 182--209.
+
+\bibitem[\protect\citeauthoryear{Antonczyk, Fitzenberger, and
+  Sommerfeld}{Antonczyk et~al.}{2011}]{Antonczyk&&&:11}
+\textsc{Antonczyk, D., B.~Fitzenberger, and K.~Sommerfeld} (2011):
+  \enquote{Anstieg der Lohnungleichheit, Rückgang der Tarifbindung und
+  Polarisierung,} \emph{Zeitschrift für ArbeitsmarktForschung}, 44, 15--27.
+
+\bibitem[\protect\citeauthoryear{Borah and Basu}{Borah and
+  Basu}{2013}]{Borah&Basu:2013}
+\textsc{Borah, B. and A.~Basu} (2013): \enquote{Highlighting Differences
+  Between Conditional and Unconditional Quantile Regression Approaches Through
+  an Application to Assess Medication Adherence,} \emph{Health Economics}, 22,
+  1052--1070.
+
+\bibitem[\protect\citeauthoryear{Bryson}{Bryson}{2014}]{Bryson:14}
+\textsc{Bryson, A.} (2014): \emph{Union Wage Effects}, IZA World of Labor.
+
+\bibitem[\protect\citeauthoryear{Dustmann, Ludsteck, and Schönberg}{Dustmann
+  et~al.}{2009}]{Dustmann&Ludsteck&Schönberg:09}
+\textsc{Dustmann, C., J.~Ludsteck, and U.~Schönberg} (2009):
+  \enquote{Revisiting the German Wage Structure,} \emph{Quarterly Journal of
+  Economics}, 124, 843--881.
+
+\bibitem[\protect\citeauthoryear{Firpo, Fortin, and Lemieux}{Firpo
+  et~al.}{2009}]{Firpo&Fortin&Lemieux:09}
+\textsc{Firpo, S., N.~Fortin, and T.~Lemieux} (2009): \enquote{Unconditional
+  Quantile Regressions,} \emph{Econometrica}, 77, 953--973.
+
+\bibitem[\protect\citeauthoryear{Fitzenberger, Kohn, and Lembcke}{Fitzenberger
+  et~al.}{2013}]{Fitzenberger&Kohn&Lembcke:13}
+\textsc{Fitzenberger, B., K.~Kohn, and A.~Lembcke} (2013): \enquote{Union
+  Density and Varieties of Coverage: The Anatomy of Union Wage Effects in
+  Germany,} \emph{Industrial and Labor Relations Review}, 66, 169--197.
+
+\bibitem[\protect\citeauthoryear{Koenker and Bassett}{Koenker and
+  Bassett}{1978}]{Koenker&Bassett:1978}
+\textsc{Koenker, R. and G.~Bassett} (1978): \enquote{Regression Quantiles,}
+  \emph{Econometrica}, 46, 33--50.
+
+\bibitem[\protect\citeauthoryear{Koenker and Hallock}{Koenker and
+  Hallock}{2001}]{Koenker&Hallock:2001}
+\textsc{Koenker, R. and K.~Hallock} (2001): \enquote{Quantile Regression,}
+  \emph{Journal of Economic Perspectives}, 15, 143--156.
+
+\bibitem[\protect\citeauthoryear{Lee}{Lee}{1978}]{Lee:78}
+\textsc{Lee, L.} (1978): \enquote{Unionism and Wage Rates: A Simultanious
+  Equations Model with Qualitative and Limited Dependent Variables,}
+  \emph{International Economic Review}, 19, 415--434.
+
+\bibitem[\protect\citeauthoryear{Maclean, Marti, and Webber}{Maclean
+  et~al.}{2014}]{Maclean&Marti&Webber:2014}
+\textsc{Maclean, J., J.~Marti, and D.~Webber} (2014): \enquote{An Application
+  of Unconditional Quantile Regression to Cigarette Taxes,} \emph{J. Pol. Anal.
+  and Manage.}, 33, 188--210.
+
+\bibitem[\protect\citeauthoryear{OECD}{OECD}{2012}]{OECD:12}
+\textsc{OECD} (2012): \emph{OECD Employment Outlook, Chapter 3, Labour Losing
+  to Capital: What Explains the Declining Labor Share?}, {Organization for
+  Economic Cooperation and Development, Paris}.
+
+\end{thebibliography}

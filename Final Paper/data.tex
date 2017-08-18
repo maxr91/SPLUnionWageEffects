@@ -1,0 +1,33 @@
+\section{Dataset}\label{Sec:Data}
+
+In order to analyze the effect of union coverage on wages and wage dispersion, we use the \emph{German Structure of Earnings Survey 2010}. Data for the GSES is collected since 1951 and periodically every 4 years since 2006. The cross-sectional linked employer-employee dataset includes information for public sector as well as private sector employers and employees. After German law,\footnote{ Verdienststatistikgesetz} employers have an obligation to provide the requested information, preventing a selection bias in the data and making it more reliable. In the data collection process, the method of stratified sampling was used: Initially, some 34,000 firms with ten or more employees were selected based on the federal state, the branch of economic activity and the size of the firm, keeping the sample as representative as possible. In a second step, about 1,9000,000 employees from the selected firms were randomly chosen.
+
+The dataset contains information on individual employee characteristics (sex, age, education,...), on occupation (years in firm, industy,...) and on earnings (gross and net income, income tax,...). Moreover, the GSES 2010 provides information on union coverage, not only on the firm-level, but more importantly also on an individual level. That enables us to determine the shares of employees within a firm, covered by a union regime.
+
+For our analysis we use the scientific-use file provided by the Research Data Centers of the Federal Statistical Office and the statistical offices of the L\"ander. Scientific-use files do not have to be used at the Research Data Center, but in return the data is anonymized in a way that prevents firms and individuals from being possibly identified. The anonymization has repercussions on the potential of the econometric analysis as some firm and individual characteristics are left out or considerably generalized. For example, all municipalities are grouped into five regions, branches of economic activity are consolidated, the number of employees in a firm is summarized into three categories and annual gross pay is top-coded for values larger than \euro 750.000. Regarding union coverage, the coverage regime is only indicated if three or more firms within one industry and region apply a sectoral or firm-level agreement, leading to a loss of roughly 300.000 observations. 
+
+Since we use a large data set, it is necessary to clean the working space before loading the data file by using the function \texttt{rm (list = ls ())}. If the data is loaded into R, we get a raw data set of 1,890,418 observations and 52 variables. A complete listing of the variables can be found in the appendix tables \ref{raw1} and \ref{raw2} , the following table \ref{var} lists only the part of the variables that are used more often in our econometric investigation. Table \ref{var} results from simple functions such as \texttt{mean()}, \texttt{summary()}, \texttt{as.data.frame()} and other useful functions provided by R to view data. Some variables have missing values, which are encoded as NA. Different levels are encoded with a number e.g. variable \texttt{ef\$10} contains information about the gender of respondents which has only two characteristics (levels) either male (\texttt{ef\$10 == 1}) or female (\texttt{ef\$10 == 0}). The same procedure is used for other nominal variables. In order to see which numeric encodings do the levels have, it is sufficient to look at the Min and Max columns from table \ref{var} and the order of the listed levels from corresponding command \texttt{a.data.frame(summary())}.
+
+\begin{landscape}
+\begin{table}[p]
+\scriptsize
+\centering
+\caption{Variables used in later econometric investigation}
+\label{var}
+\begin{tabular}{|l|l|l|l|l|l|l|l|}
+\hline
+\textbf{Variable} & \textbf{Label}                                 & \textbf{Level of measurement} & \textbf{Obs} & \textbf{Mean} & \textbf{Std. Dev.} & \textbf{Min} & \textbf{Max} \\ \hline
+ef9               & Performance group for compensation             & nominal                       & 1.593.794    & NA            & NA                 & 1            & 5            \\ \hline
+ef10              & Gender (male==1, female==2)                    & nominal                       & 1.890.418    & NA            & NA                 & 1            & 2            \\ \hline
+ef16u2            & Education                                      & nominal                       & 1.890.418    & NA            & NA                 & 1            & 7            \\ \hline
+ef40              & Work experience in years                       & ratio                         & 1.890.222    & 10,9071       & 11,25833           & 0            & 45           \\ \hline
+ef41              & Age in years                                   & ratio                         & 1.890.222    & 41,37514      & 12,44701           & 16           & 66           \\ \hline
+ef9be             & Involvement of public in the company's capital & nominal                       & 1.408.474    & NA            & NA                 & 1            & 2            \\ \hline
+ef12be            & Share of female workers in the firm            & ratio                         & 1.890.418    & 43,67534      & 31,94675           & 0            & 100          \\ \hline
+ef26be            & Number of the employees of the enterprise      & ratio                         & 1.890.418    & 1290,626      & 3482,053           & 1            & 44523        \\ \hline
+\end{tabular}
+
+\end{table}
+\end{landscape}
+
+

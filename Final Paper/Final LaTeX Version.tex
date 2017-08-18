@@ -1,0 +1,199 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{amsmath,amssymb,amsfonts,amsthm}    % Typical maths resource packages
+\usepackage{graphicx}                           % Packages to allow inclusion of graphics
+\usepackage{hyperref}                           % For creating hyperlinks in cross references
+\usepackage[authoryear]{natbib}                 % literature reference style
+\usepackage[bf]{caption}
+\usepackage{bbm}
+\usepackage{eurosym}
+\usepackage{multirow}
+\usepackage{pdflscape}
+\usepackage{float}
+\usepackage{dcolumn}
+%\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{german}
+\usepackage{color}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\definecolor{lightgray}{gray}{0.95}
+\usepackage{listings}
+\lstset{numbers=left,
+	backgroundcolor = \color{lightgray},
+	numberstyle=\tiny,
+	numbersep=5pt,
+	breaklines=true,
+	showstringspaces=false,
+	frame=l ,
+	xleftmargin=15pt,
+	xrightmargin=15pt,
+	basicstyle=\ttfamily\scriptsize,
+	stepnumber=1,
+	keywordstyle=\color{blue},
+  	commentstyle=\color{dkgreen},
+  	stringstyle=\color{mauve}
+}
+\usepackage{caption}
+\usepackage{dcolumn}
+
+% -------------------------------
+% --- some layout definitions ---
+% -------------------------------
+
+% define topline
+\usepackage[automark]{scrpage2}
+\pagestyle{scrheadings}
+\automark{section}
+\clearscrheadings
+\ohead{\headmark}
+
+% define citation style
+\bibliographystyle{ecta}
+
+% define page size, margin size
+\setlength{\headheight}{1.1\baselineskip}
+\voffset=-2cm
+\hoffset=-3cm
+\textheight24cm
+\textwidth15.5cm
+\topmargin1cm
+\oddsidemargin3cm
+\evensidemargin3cm
+
+% define line line spacing = 1.5
+\renewcommand{\baselinestretch}{1.25}
+
+% define second level for `itemizing'
+\renewcommand{\labelitemii}{-}
+\newcommand{\E}{\mbox{I\negthinspace E}}
+
+% Define new commands
+\renewcommand{\figurename}{Figure}
+\renewcommand{\tablename}{Table}
+\renewcommand{\contentsname}{Table of Contents}
+\renewcommand{\listfigurename}{List of Figures}
+\renewcommand{\listtablename}{List of Tables}
+
+
+\begin{document}
+\lstset{language=R}
+% -------------------------------
+% --- frontmatter: Title page ---
+% -------------------------------
+
+\thispagestyle{empty}
+\begin{center}
+    {\LARGE{\bf Union Wage Effects in Germany - Implications for the Wage Distribution}} \vspace{1cm}
+
+
+    {\large Seminar paper submitted\\\vspace{0.8cm}
+    to}\\\vspace{0.5cm}
+    {\large{\bf Alla Petukhina, Shi Chen and Niels Wesselh\"offt}} \\\vspace{0.8cm}
+    {\large Humboldt-Universit\"at zu Berlin \\
+    School of Business and Economics \\
+    Ladislaus von Bortkiewicz Chair of Statistics} \vspace{1cm}
+
+
+    {\large by \\\vspace{0.5cm}
+    {\bf Felix B\"onisch, Nicole Hermann and Max Reinhardt}} \vspace{1cm}
+
+
+    {\large in partial fulfillment of the requirements \\
+    for the degree of \\
+    {\bf Master of Science} \\\vspace{0.8cm}
+    Berlin, August 18th, 2017}
+
+\end{center}
+
+% -----------------------------
+% --- frontmatter: Contents ---
+% -----------------------------
+\newpage
+\tableofcontents
+\clearpage
+
+
+% ----------------------------------------------------
+% --- frontmatter: List of Figures (not mandatory) ---
+% ----------------------------------------------------
+\newpage
+\pagenumbering{roman}
+\addcontentsline{toc}{section}{List of Abbreviations}
+\ohead[]{LIST OF ABBREVIATIONS}
+\input{abbreviations}
+
+
+% ----------------------------------------------------
+% --- frontmatter: List of Figures (not mandatory) ---
+% ----------------------------------------------------
+\newpage
+\addcontentsline{toc}{section}{List of Figures}
+\ohead[]{\rightmark}
+\listoffigures
+
+% ---------------------------------------------------
+% --- frontmatter: List of Tables (not mandatory) ---
+% ---------------------------------------------------
+\newpage
+\addcontentsline{toc}{section}{List of Tables}
+\listoftables
+
+
+% -------------------------------
+% --- main body of the thesis ---
+% -------------------------------
+\newpage
+\pagestyle{plain}
+\setcounter{page}{1}    % start page numbering anew
+\pagenumbering{arabic}  % page numbers in arabic style
+
+
+\input{intro}
+\input{data}
+\input{data_prep}
+\input{des_statistic}
+\input{regressionR}
+\input{conc}
+
+%making sure that all sources are cited
+
+
+% ----------------
+% --- appendix ---
+% ----------------
+\appendix
+
+% literature
+\newpage
+\renewcommand{\thepage}{\roman{page}} \setcounter{page}{4}
+\addcontentsline{toc}{section}{References}
+\bibliography{literature}
+
+\newpage
+\input{app_tables}
+\newpage
+\input{app_figures}
+\newpage
+\input{app_code}
+
+
+% --------------------------------------------
+% --- last page: Declaration of Authorship ---
+% --------------------------------------------
+
+\newpage
+\thispagestyle{empty}
+%{\Large{\bf Declaration of Authorship}}\vspace{0.5cm}
+
+\section*{Declaration of Authorship}
+
+We hereby confirm that we have authored this Seminar paper independently and without use of others than the indicated sources. All passages which are literally or in general matter taken out of publications or other sources are marked as such.
+\vspace{1cm}
+
+Berlin, August 18th, 2017 \vspace{0.9cm}
+
+Felix B\"onisch, Nicole Hermann, Max Reinhardt
+
+
+\end{document} 

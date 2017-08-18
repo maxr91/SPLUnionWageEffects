@@ -1,0 +1,31 @@
+\BOOKMARK [1][-]{section*.1}{List of Abbreviations}{}% 1
+\BOOKMARK [1][-]{section*.2}{List of Figures}{}% 2
+\BOOKMARK [1][-]{section*.3}{List of Tables}{}% 3
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 4
+\BOOKMARK [1][-]{section.2}{Dataset}{}% 5
+\BOOKMARK [1][-]{section.3}{Data Preparation}{}% 6
+\BOOKMARK [2][-]{subsection.3.1}{Implementation}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.2}{Testing}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.3}{Conclusion}{section.3}% 9
+\BOOKMARK [1][-]{section.4}{Descriptive Statistics}{}% 10
+\BOOKMARK [2][-]{subsection.4.1}{Implementatition}{section.4}% 11
+\BOOKMARK [2][-]{subsection.4.2}{Testing}{section.4}% 12
+\BOOKMARK [2][-]{subsection.4.3}{Conclusion}{section.4}% 13
+\BOOKMARK [1][-]{section.5}{Regression Analysis}{}% 14
+\BOOKMARK [2][-]{subsection.5.1}{OLS}{section.5}% 15
+\BOOKMARK [2][-]{subsection.5.2}{Conditional Quantile Regression}{section.5}% 16
+\BOOKMARK [2][-]{subsection.5.3}{Unconditional Quantile Regression}{section.5}% 17
+\BOOKMARK [1][-]{section.6}{Conclusions}{}% 18
+\BOOKMARK [1][-]{section.6}{References}{}% 19
+\BOOKMARK [1][-]{appendix.A}{Tables}{}% 20
+\BOOKMARK [1][-]{appendix.B}{Figures}{}% 21
+\BOOKMARK [1][-]{appendix.C}{Code}{}% 22
+\BOOKMARK [2][-]{subsection.C.1}{Code for Data Preparation}{appendix.C}% 23
+\BOOKMARK [3][-]{subsubsection.C.1.1}{Code for Quantlet 1}{subsection.C.1}% 24
+\BOOKMARK [3][-]{subsubsection.C.1.2}{Code for Quantlet 2}{subsection.C.1}% 25
+\BOOKMARK [2][-]{subsection.C.2}{Code for Descriptive Analysis}{appendix.C}% 26
+\BOOKMARK [3][-]{subsubsection.C.2.1}{Code for Quantlet 3}{subsection.C.2}% 27
+\BOOKMARK [3][-]{subsubsection.C.2.2}{Code for Quantlet 4}{subsection.C.2}% 28
+\BOOKMARK [3][-]{subsubsection.C.2.3}{Code for Quantlet 5}{subsection.C.2}% 29
+\BOOKMARK [2][-]{subsection.C.3}{Code for Regression Analysis}{appendix.C}% 30
+\BOOKMARK [3][-]{subsubsection.C.3.1}{Code for Quantlet 6}{subsection.C.3}% 31

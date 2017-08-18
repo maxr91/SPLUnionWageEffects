@@ -1,0 +1,561 @@
+\section{Code}
+
+Please note that the quantlets are all related to their order and are specifically adapted to the data set \texttt{dataset2010.dta}. The quantlets must be executed in their order to obtain the same results as presented in this paper.
+
+
+\subsection{Code for Data Preparation}
+
+\subsubsection{Code for Quantlet 1}
+\lstset{firstnumber = 1}
+\begin{lstlisting}
+#clear the workspace
+rm(list=ls())
+
+#install package / load library for importing stata 13 files
+install.packages("readstata13")
+library(readstata13)
+
+#importing the data into dat
+dat = read.dta13("dataset2010.dta", convert.factors = TRUE, 
+	generate.factors = FALSE, encoding = "UTF-8",  fromEncoding = NULL,  
+	convert.underscore = FALSE, missing.type = FALSE, convert.dates = TRUE, 
+	replace.strl = TRUE, add.rownames = FALSE, nonint.factors = FALSE,
+	select.rows = NULL)
+
+#function for calculation respondents per company
+respondFunc = function(dat){
+  if (missing(dat)) 		stop("No data passed to the function")
+  if (is.numeric(dat)!= TRUE)	stop("Numeric data needed")
+  respond = numeric(length(dat))
+  i = 1                                   #setting counting variables to 1
+  j = 1
+  temp = table(dat)                       #how many different values are in dat
+  for (i in 1:length(dat)){               #for every observation
+    j = dat[i]                            #store value of dat in j
+    respond[i] = temp[j]                  #value of temp[i] store in respond[i]
+    i = i+1              
+  }
+  return(respond)
+}
+
+respond = respondFunc(dat$ef1)			#call function respondFunc
+dat["respond"] = respond			#add to data frame
+
+#dummyfunction to create dummy variables,
+#compare data vector with selected level of data vector, 
+#if true, then function writes 1
+dummyFunc = function(dat , x){
+  if (missing(dat))			stop("No data passed to the function")
+  if(is.null(levels(dat)))		stop("No levels found")
+  d = as.numeric(dat == levels(dat)[x])      
+  return(d)
+}
+
+#create eastdummy  0=west
+east = dummyFunc(dat$ef4be , 5)  		#call function dummyFunc
+dat["east"] = east           	    		#add to data frame
+
+#create less classes for education
+tempEdu1  = dummyFunc(dat$ef16u2 , 1 )
+tempEdu1a = dummyFunc(dat$ef16u2 , 2 )
+tempEdu2  = dummyFunc(dat$ef16u2 , 3 )
+tempEdu2a = dummyFunc(dat$ef16u2 , 4 )
+tempEdu3  = dummyFunc(dat$ef16u2 , 5 )
+tempEdu3a = dummyFunc(dat$ef16u2 , 6 )
+tempNa    = dummyFunc(dat$ef16u2 , 7 )
+tempNa[tempNa == 1] = NA               		 #add NA's from dataset
+
+#reduce dummy levels from 6 to 3
+educ1 = tempEdu1 + tempEdu1a + tempNa   
+educ2 = tempEdu2 + tempEdu2a + tempNa
+educ3 = tempEdu3 + tempEdu3a + tempNa
+
+dat["educ1"] = educ1                  	 	#add to data frame
+dat["educ2"] = educ2
+dat["educ3"] = educ3
+
+#create dummy for permanent workers
+permanent        = dummyFunc(dat$ef17 , 1 )
+dat["permanent"] = permanent        		 #add to data frame
+
+#define whether someone worked in shifts/at night/...
+shift        = as.numeric(dat$ef23 >= 1)
+dat["shift"] = shift                   		 #add to data frame
+
+#create dummy for fulltime workers and reduce levels 
+tempFull1 = as.numeric(dat$ef16u1 != "Teilzeitbeschäftigt - Beamter")
+tempFull2 = as.numeric(dat$ef16u1 != "Teilzeitbeschäftigt - weniger als 18 Std.")
+tempFull3 = as.numeric(dat$ef16u1 != "Teilzeitbeschäftigt - 18 Std. und mehr")
+fulltime  = tempFull1+tempFull2+tempFull3 - 2
+dat["fulltime"] = fulltime        		   #add to data frame
+
+#create minimumwage dummy 0=nein 
+minimumWage   = as.numeric(dat$ef31be != "nein")
+minimumWageNa = dummyFunc(dat$ef31be , 3 )
+minimumWageNa[minimumWageNa == 1] = NA 	 		#add NA's from dataset
+minimumWage        = minimumWage+minimumWageNa
+dat["minimumWage"] = minimumWage + minimumWageNa       #add to data frame
+\end{lstlisting}
+
+
+\subsubsection{Code for Quantlet 2}
+\lstset{firstnumber = 89}
+\begin{lstlisting}
+#create function to calculate how many employees have a union contract or not
+#a= company dummy, b= data information vector with dummies, c= choose level
+contractFunc = function(a,b,c){            
+  if (missing(b)) 		stop("No data passed to the function")
+  if (is.numeric(a)!= TRUE & is.numeric(b)!= TRUE  )
+    stop("numeric data needed")
+  if (missing(c))		stop("No level selected")
+  temp = table(a)
+  #calculate cummulative sums for later addressing the vector
+  cumtemp = cumsum(temp)                 
+  cumtemp = append(cumtemp,0,after =0)     #need 0 as start value 
+  g = nrow(temp) +1
+  i = 2                                    #setting counting variables to 1
+  j = 1
+  k = 1
+  q = numeric(length(b))
+  for (i in 2:g){
+    k = cumtemp[i-1]+1                   #store starting value company x in dat in k
+    j = cumtemp[i]                       #store end value company x in dat in j
+    #store results in p (how many people have kein Tarifvertrag and so on....)
+    p = table(b[k:j])                      
+    q[k:j]  = p[c]                   
+    i = i+1
+  }
+  return(q)
+}
+
+noTariff = contractFunc(dat$ef1, dat$ef8, 1) 	#call function contractFunc
+SCTariff = contractFunc(dat$ef1, dat$ef8, 2)
+FCTariff = contractFunc(dat$ef1, dat$ef8, 3)
+dat["noTariff"] = noTariff               	 #add to data frame
+dat["SCTariff"] = SCTariff
+dat["FCTariff"] = FCTariff
+
+#create shares
+shareFC = FCTariff/respond
+shareSC = SCTariff/respond
+dat["shareFC"] = shareFC           		 #add to data frame
+dat["shareSC"] = shareSC
+
+#create dummy variables for no labor, sectoral and firm-level contract
+noTariffDummy = dummyFunc(dat$ef8 , 1)
+SCTariffDummy = dummyFunc(dat$ef8 , 2)
+FCTariffDummy = dummyFunc(dat$ef8 , 3)
+dat["noTariffDummy"] = noTariffDummy          	#add to data frame
+dat["SCTariffDummy"] = SCTariffDummy
+dat["FCTariffDummy"] = FCTariffDummy
+
+#create interaction terms
+shareFCFC = shareFC*FCTariffDummy
+shareSCSC = shareSC*SCTariffDummy
+dat["shareFCFC"] = shareFCFC          		#add to data frame
+dat["shareSCSC"] = shareSCSC
+
+#create variables age squared and experienece squared 
+agesq = dat$ef40*dat$ef40
+expsq = dat$ef41*dat$ef41
+dat["agesq"] = agesq         			#add to data frame
+dat["expsq"] = expsq
+
+#define wage and lnwage
+wage   = ifelse(dat$ef18+dat$ef20 == 0, NA, 
+	(dat$ef21+dat$ef22)/(dat$ef18+dat$ef20))
+lnWage = log(wage)
+dat["wage"]   = wage              		#add to data frame
+dat["lnWage"] = lnWage
+\end{lstlisting}
+
+\subsection{Code for Descriptive Analysis}
+\subsubsection{Code for Quantlet 3}
+\lstset{firstnumber = 156}
+\begin{lstlisting}
+#install and load plotrix-package / neccessary to use pyramid.plot
+install.packages("plotrix")
+library("plotrix")
+
+#function to calculate relative frequencies in % table for variable k with l different characteristics
+frequency = function(k, l){            
+  if (missing(k))
+    stop("No data passed to the function. Variable k has to be defined.")
+  if (missing(l))
+    stop("No data passed to the function. Variable l has to be defined.")
+  100*sweep(table(k,l), 2, colSums(table(k,l)), "/")
+}  
+
+#function to build population pyramid and store it as pdf
+buildpopulation = function(k, l, popname){
+  if (missing(popname))
+    stop('No data passed to the function. Variable popname has to be defined.
+         Please define a plot name such as "populationpyramid.pdf". 
+         Use quotation marks, at the beginning and the end of the plot name.')
+  pop = frequency(k, l)
+  pdf(popname)
+  pyramid.plot(pop[,1], pop[,2], labels = rownames(pop), gap = 2,
+               lxcol = "blue", rxcol = "red")
+  dev.off() 
+}
+
+#subsample with employees covered by the union contract (with FC or SC)
+datFCSC = dat[ which(SCTariffDummy == 1 | FCTariffDummy == 1),]
+
+#subsample with employees not covered by the union contract (no FC & no SC)
+datNoFCSC = dat[ which(SCTariffDummy == 0 & FCTariffDummy == 0),]
+
+#population pyramid on the whole dataset
+buildpopulation(dat$ef41, dat$ef10, "population_all.pdf")
+
+#population pyramid of employees covered by the union contract
+buildpopulation(datFCSC$ef41, datFCSC$ef10, "populationFCSC.pdf")
+
+#population pyramid of employees not covered by the union contract
+buildpopulation(datNoFCSC$ef41, datNoFCSC$ef10, "population-noFCSC.pdf")
+
+#calculate arithmetic mean
+mean(dat$ef41, na.rm = TRUE)          #all population
+mean(datFCSC$ef41, na.rm = TRUE)      #subsample - union covered workers
+mean(datNoFCSC$ef41, na.rm = TRUE)    #subsample - workers without a union contract
+
+#calculate median
+median(dat$ef41, na.rm = TRUE)          #all population
+median(datFCSC$ef41, na.rm = TRUE)      #subsample - union covered workers
+median(datNoFCSC$ef41, na.rm = TRUE)    #subsample - workers without a union contract
+
+#function to simultaneously generate and save boxplot in a pdf-file
+buildboxplot =  function (v, w , boxname, z){
+  if (missing(v))
+    stop("No data passed to the function. Variable v has to be defined.")
+  if (missing(w))
+    stop("No data passed to the function. Variable w has to be defined.")
+  if (missing(z))
+    stop("No data passed to the function. Variable z has to be defined.
+         z is a vector which should contain labels for the characteristics of 
+         the variable w. The number of the characteristics of w must equal the 
+         number of elements in z.")
+  if (missing(boxname))
+    stop('No data passed to the function.boxname has to be defined such as 
+    	"graph.pdf".') 
+  if (is.numeric(v)!= TRUE)
+    stop("Numeric data needed. k has to be a numeric variable.")
+  pdf(boxname, width = 11, height = 7)
+  boxplot(v~w, range=2.5, width=NULL, notch=FALSE,varwidth=FALSE, names = z,
+          boxwex=0.8, outline=FALSE, staplewex=0.5, horizontal=FALSE, 
+          border="black", col="#94d639", add=FALSE, at=NULL)          
+  abline(h = median(v, na.rm = TRUE), col="red", lwd = 1.5)
+  dev.off()
+}
+
+#define a vector with label names for gender and education
+genderLAB = c("male", "female")
+educLAB = c("Educ A", "Educ B", "Educ C", "Educ D", "Educ E", "Educ F", 
+		"Educ G")
+
+#boxplot ln(wage)~gender of all employees
+buildboxplot(dat$lnWage, dat$ef10, "boxplot_lnwage_gen.pdf", genderLAB)
+
+#boxplot ln(wage)~education (educ) of all employees 
+buildboxplot(dat$lnWage, dat$ef16u2, "boxplot_lnwage_educ.pdf", educLAB)
+
+#boxplot ln(wage)~educ of employees which are covered by an union contract 
+buildboxplot(datFCSC$lnWage, datFCSC$ef16u2, "boxploteducFCSC.pdf", educLAB)
+
+#boxplot ln(wage)~educ of employees which are not covered by an union contract
+buildboxplot(datNoFCSC$lnWage, datNoFCSC$ef16u2, 
+	"boxploteduc-NoFCSC.pdf", educLAB)
+
+#calculate median of the variable ln(wage)
+median(dat$lnWage, na.rm = TRUE)
+median(datFCSC$lnWage, na.rm = TRUE)
+median(datNoFCSC$lnWage, na.rm = TRUE)
+\end{lstlisting}
+
+\subsubsection{Code for Quantlet 4}
+\lstset{firstnumber = 254}
+\begin{lstlisting}
+#function to calculate quantiles
+quant = function(y, x, q){
+  if (missing(x))
+    stop("No data passed to the function. Variable x has to be defined.")
+  if (missing(y))
+    stop("No data passed to the function. Variable y has to be defined.")
+  if (missing(q))
+    stop("No data passed to the function. Variable q has to be defined.")
+  if (is.numeric(y)!= TRUE)
+    stop("Numeric data needed. y has to be a numeric.")
+  if (is.numeric(q)!= TRUE)
+    stop("Numeric data needed. Quantile q was wrong specified, 
+    	q can be either a value or a numeric value.")
+  aggregate(y, list(x), na.rm=TRUE, quantile, q)
+}
+
+#define a vector with quantiles
+q = c(0.10, 0.25, 0.50, 0.75, 0.90) 
+
+#define a vector with used colors
+color = c("orange", "red", "green", "blue", "black")
+
+#Function to construct scatterplot with quantile lines
+buildquantileplot = function(x, y, xla, yla, plotname){
+  if (missing(xla))
+    stop("No data passed to the function. Variable xla has to be defined.
+         This is a label for the x-axis.")
+  if (missing(yla))
+    stop("No data passed to the function. Variable yla has to be defined.
+         This is a label for the y-axis.")
+  if (missing(plotname))
+    stop('No data passed to the function.
+    	plotname has to be defined such as "graph.pdf".') 
+  pdf(plotname)
+  #plot points
+  plot(x, y, ylim=c(2,8), pch = 1, col="dark green", 
+       xlab = xla, ylab = yla)
+  #plot quantilelines
+  for (l in 1:length(q)){
+    lines(quant(y, x, q[l]), col = color[l], lwd =2)
+  }
+  dev.off()
+}
+
+#Scatterplot with quantile-lines ln(wage)~age
+buildquantileplot(dat$ef41, dat$lnWage, "Age", "Ln(wage)", 
+	"scatterplot_lnwage_age.pdf")
+
+#Scatterplot with quantile-lines ln(wage)~experience
+buildquantileplot(dat$ef40, dat$lnWage, "Experience", "Ln(wage)", 
+	"scatterplot_lnwage_experience.pdf")
+
+#Scatterplot with quantile-lines ln(wage)~experience
+buildquantileplot(datFCSC$ef40, datFCSC$lnWage, "Experience", "Ln(wage)",
+	"scatterplotFCSC_lnwage_experience.pdf")
+
+#Scatterplot with quantile-lines ln(wage)~experience
+buildquantileplot(datNoFCSC$ef40, datNoFCSC$lnWage, "Experience", "Ln(wage)",
+	"scatterplotNoFCSC_lnwage_experience.pdf")
+
+\end{lstlisting}
+
+\subsubsection{Code for Quantlet 5}
+\lstset{firstnumber = 314}
+\begin{lstlisting}
+#install and load data.table-package 
+install.packages("data.table")    
+library(data.table)   
+
+#convert data frame into data table       
+dat = data.table(dat)             		
+
+#create group with 3 factors
+dat[SCTariffDummy == 1, Group := factor(1)]   
+dat[FCTariffDummy == 1, Group := factor(2)]
+dat[noTariffDummy == 1, Group := factor(3)]
+
+#name each factor
+dat[, Group := factor(Group, labels = c("SC", "FC", "IC"))]	
+
+#how many observations in total are in the data table (without nas)
+sum = dat[!is.na(Group), .N]                       
+
+#calculate mean and standard deviation of lnwage for each group and each gender
+lnWageSummary = dat[!is.na(Group), .(LogHourlyWageMean = mean(lnWage, na.rm = T),
+	LogHourlyWageSD = sd(lnWage, na.rm = T)), by = .(ef10, Group)]  
+
+#order variables according to gender and group
+lnWageSummary = lnWageSummary[order(ef10, Group)]               
+
+#calculate total mean (no discrimination between gender)                     
+lnWageSummaryOverall = dat[!is.na(Group), .(LogHourlyWageMean = mean(lnWage, na.rm = T),
+	LogHourlyWageSD = sd(lnWage, na.rm = T)), by = .(Group)]
+
+#order variables according to group
+lnWageSummaryOverall = lnWageSummaryOverall[order(Group)]
+
+#calculate frequencys for every group and by gender
+mtable = table(dat$Group, dat$ef10)                                            
+
+#calculate employee share (no discrimination between gender)
+TotalEmpolyeeShare = dat[!is.na(Group), .(Share = .N/sum), by = .(Group)] 
+
+#order values    
+TotalEmpolyeeShare = TotalEmpolyeeShare[order(Group)]                          
+
+#create full table with before calculcated values 
+lnWageSummaryTotal = data.frame(Regime = c("SC", "FC", "IC"),
+		#calculate proportion for employee share (male)                                       
+	MaleEmpolyeeShare = prop.table(mtable, 2)[, 1], 
+		#put male wage mean value 
+	MaleLogHourlyWageMean = lnWageSummary[ef10 == "männlich", LogHourlyWageMean], 
+		#put male standard deviation   
+	MaleLogHourlyWageSD = lnWageSummary[ef10 == "männlich", LogHourlyWageSD], 
+		#calculate proportion for employee share (female)     
+	FemaleEmpolyeeShare = prop.table(mtable, 2)[, 2],  
+		#put male wage mean value                            
+	FemaleLogHourlyWageMean = lnWageSummary[ef10 == "weiblich", LogHourlyWageMean],
+		#put male standard deviation    
+	FemaleLogHourlyWageSD = lnWageSummary[ef10 == "weiblich", LogHourlyWageSD],
+		#put TotalEmployee share here      
+	TotalEmpolyeeShare = TotalEmpolyeeShare$Share,           
+		#put Total mean wage here                     
+	TotalLogHourlyWageMean = lnWageSummaryOverall$LogHourlyWageMean, 
+		#put total standard deviation here                 
+	TotalLogHourlyWageSD = lnWageSummaryOverall$LogHourlyWageSD,                   
+	stringsAsFactors = FALSE)
+
+#calculate Total line of before created variables 
+Total = c("Total",     
+		#sum over male shares (=1)   
+	sum(lnWageSummaryTotal$MaleEmpolyeeShare),
+		#build total of mean log wage male                              
+	dat[!is.na(Group) & ef10 == "männlich", mean(lnWage, na.rm = T)], 
+		#build total of standard deviation male      
+	dat[!is.na(Group) & ef10 == "männlich", sd(lnWage, na.rm = T)],
+		#sum over female shares (=1)      
+	sum(lnWageSummaryTotal$FemaleEmpolyeeShare),                          
+		#build total of mean log wage female
+	dat[!is.na(Group) & ef10 == "weiblich", mean(lnWage, na.rm = T)],     
+		#build total of standard deviation female
+	dat[ef10 == "weiblich", sd(lnWage, na.rm = T)],
+		#sum over all shares (=1 , no discromination in gender)	                         
+	sum(lnWageSummaryTotal$TotalEmpolyeeShare),                             
+		#build total of mean log wage of all observations
+	dat[!is.na(Group), mean(lnWage, na.rm = T)],                            
+		#build total of standard deviation of all observations
+	dat[!is.na(Group), sd(lnWage, na.rm = T)])                              
+
+#combine total table and summary table
+lnWageSummaryTotal = rbind(lnWageSummaryTotal, Total)  
+ 
+lnWageSummaryTotal[,2:10] = rapply(lnWageSummaryTotal[,2:10], as.numeric)
+lnWageSummaryTotal = rapply(object = lnWageSummaryTotal, f = round, 
+	classes = "numeric", how = "replace", digits = 2)	#round results
+
+dat = data.frame(dat)   #put data back into data frame
+
+#install and load xtable-package
+install.packages("xtable")
+library(xtable)
+
+#print file with latex code
+print(xtable(lnWageSummaryTotal, type = "latex"), 
+	file = "covRegimeandLNWages.tex") 
+
+\end{lstlisting}
+
+\subsection{Code for Regression Analysis}
+\subsubsection{Code for Quantlet 6}
+\lstset{firstnumber = 415}
+\begin{lstlisting}
+#install and load dplyr- and stargazer-package
+install.packages("dplyr")
+library(dplyr)
+install.packages("stargazer")
+library(stargazer)
+
+#OLS regression with 4 different specifications
+model1 = lm (lnWage ~ SCTariffDummy + FCTariffDummy  + ef10 + east + ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 + educ3 + shift + ef40 + agesq + ef41 + expsq + permanent , dat)
+
+model2 = lm (lnWage ~ shareSC + shareFC + ef10 + east + ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 + educ3 + shift + ef40 + agesq + ef41 + expsq + permanent , dat)
+
+model3 = lm (lnWage ~ SCTariffDummy + shareSC + FCTariffDummy + shareFC + ef10 + east + ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 + educ3 + shift + ef40 + agesq + ef41 + expsq + permanent , dat)
+
+model4 = lm (lnWage ~ SCTariffDummy + shareSC + FCTariffDummy + shareFC + shareSCSC + shareFCFC + ef10 + east + ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 + educ3 + shift + ef40 + agesq + ef41 + expsq + permanent , dat)
+
+#output table result in latex code
+stargazer(model1, model2, model3, model4, title="Results OLS Regression" ,
+	keep = c("SCTariffDummy", "FCTariffDummy", "shareSC" , "shareFC" , "shareSCSC" , "shareFCFC" , "ef10") , 
+	covariate.labels=c("Sectoral Contract","Firm Contract", "share SC","share FC","shareSCxSC","shareFCxFC" , "gender (male = 0)"),
+	align=TRUE , omit.stat=c("ser","f"),  no.space=TRUE, out = "olsregression.tex")
+
+### Quantile Regression ###
+
+#install and load quantreg-package
+install.packages("quantreg")
+library(quantreg)
+
+#free up additional memory
+memory.limit(10000)   
+
+#delete NAs from lnwage
+quantileRegressionData   = dat %>% filter(!is.na(lnWage)) 
+
+#set quantiles
+quantile = seq(0.05, 0.95, by=0.05)   
+
+#Quantile Regression with full data set
+modelConditionalQR = rq(lnWage ~ SCTariffDummy + shareSC + FCTariffDummy + shareFC + shareFCFC + shareSCSC + ef10 + east+ ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 + educ3 + shift + ef40 + agesq + ef41 + expsq + permanent , data=quantileRegressionData, tau = quantile)
+quantreg.plot = (summary(modelConditionalQR))
+
+#define a vector of which variables' coefficients should be plotted
+plotvar = c(1, 2, 3, 4, 5, 6, 7, 8)  
+plot(quantreg.plot, parm=plotvar)
+
+modelConditionalQRCoef = modelConditionalQR[1]
+modelConditionalQRCoef = as.data.frame(modelConditionalQRCoef)
+
+#build vector with share for later calculation of the effects
+calcAverage = c(lnWageSummaryTotal$TotalEmpolyeeShare[1],      
+                lnWageSummaryTotal$TotalEmpolyeeShare[1],
+                lnWageSummaryTotal$TotalEmpolyeeShare[2],
+                lnWageSummaryTotal$TotalEmpolyeeShare[2])
+
+#build data frame with results from conditional quantile regression
+calcAverageCoefCQRSCSCFCFCQR = data.frame(
+	tau10 = c(modelConditionalQRCoef[7, 2],  modelConditionalQRCoef[7, 2], modelConditionalQRCoef[6, 2],  modelConditionalQRCoef[6, 2]), 
+	tau25 = c(modelConditionalQRCoef[7, 5],  modelConditionalQRCoef[7, 5], modelConditionalQRCoef[6, 5],  modelConditionalQRCoef[6, 5]), 
+	tau50 = c(modelConditionalQRCoef[7, 10], modelConditionalQRCoef[7, 10], modelConditionalQRCoef[6, 10], modelConditionalQRCoef[6, 10]), 
+	tau75 = c(modelConditionalQRCoef[7, 15], modelConditionalQRCoef[7, 15], modelConditionalQRCoef[6, 15], modelConditionalQRCoef[6, 15]), 
+	tau90 = c(modelConditionalQRCoef[7, 18], modelConditionalQRCoef[7, 18], modelConditionalQRCoef[6, 18], modelConditionalQRCoef[6, 18]))
+
+#calculate average partial effects
+averagePartialEffectQR = data.frame(Quantiles = c("Sector Contract (SC)", "shareSC", "Firm Contract (FC)", "shareFC"), 
+	tau10 = modelConditionalQRCoef[2:5, 2]  + (calcAverage * calcAverageCoefCQRSCSCFCFCQR$tau10),     
+	tau25 = modelConditionalQRCoef[2:5, 5]  + (calcAverage * calcAverageCoefCQRSCSCFCFCQR$tau25), 
+	tau50 = modelConditionalQRCoef[2:5, 10] + (calcAverage * calcAverageCoefCQRSCSCFCFCQ$tau50),
+	tau75 = modelConditionalQRCoef[2:5, 15] + (calcAverage * calcAverageCoefCQRSCSCFCFCQ$tau75),
+	tau90 = modelConditionalQRCoef[2:5, 18] + (calcAverage * calcAverageCoefCQRSCSCFCFCQ$tau90))                                                 
+
+#print table in latex code
+print(xtable(averagePartialEffectQR, type = "latex"), 
+	file = "averagePartialEffectsCQR.tex")
+
+### Uncondtional Quantile Regression ###
+
+#install and load uuqr-package
+install.packages("uqr")
+library(uqr)
+
+quantile2=c(0.1, 0.25, 0.5, 0.75, 0.9)
+modelUnconditionalQR = urq(lnWage ~  SCTariffDummy + shareSC + FCTariffDummy + shareFC + shareFCFC + shareSCSC + ef10 + east + ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 + educ3 + shift + ef40 + agesq + ef41 + expsq + permanent, data=quantileRegressionData, tau = quantile2 )
+
+#calculate average partial effects for unconditional quantile regression:
+modelUnconditionalQRCoef = modelUnconditionalQR[1]
+modelUnconditionalQRCoef = as.data.frame(modelUnconditionalQRCoef)
+
+#build data frame with results from unconditional quantile regression
+calcAverageCoefUQRSCSCFCFC = data.frame(
+	tau10 = c(modelUnconditionalQRCoef[7, 1], modelUnconditionalQRCoef[7, 1], modelUnconditionalQRCoef[6, 1], modelUnconditionalQRCoef[6, 1]),
+	tau25 = c(modelUnconditionalQRCoef[7, 2], modelUnconditionalQRCoef[7, 2], modelUnconditionalQRCoef[6, 2], modelUnconditionalQRCoef[6, 2]), 
+	tau50 = c(modelUnconditionalQRCoef[7, 3], modelUnconditionalQRCoef[7, 3], modelUnconditionalQRCoef[6, 3], modelUnconditionalQRCoef[6, 3]), 
+	tau75 = c(modelUnconditionalQRCoef[7, 4], modelUnconditionalQRCoef[7, 4], modelUnconditionalQRCoef[6, 4], modelUnconditionalQRCoef[6, 4]), 
+	tau90 = c(modelUnconditionalQRCoef[7, 5], modelUnconditionalQRCoef[7, 5], modelUnconditionalQRCoef[6, 5], modelUnconditionalQRCoef[6, 5]))
+
+#calculate average partial effects
+averagePartialEffectUQR = data.frame(Quantiles = c("Sector Contract (SC)", "shareSC", "Firm Contract (FC)", "shareFC"), 
+	tau10 = modelUnconditionalQRCoef[2:5, 1] + (calcAverage * calcAverageCoefUQRSCSCFCFC$tau10), 
+	tau25 = modelUnconditionalQRCoef[2:5, 2] + (calcAverage * calcAverageCoefUQRSCSCFCFC$tau25),
+	tau50 = modelUnconditionalQRCoef[2:5, 3] + (calcAverage * calcAverageCoefUQRSCSCFCFC$tau50),
+	tau75 = modelUnconditionalQRCoef[2:5, 4] + (calcAverage * calcAverageCoefUQRSCSCFCFC$tau75), 
+	tau90 = modelUnconditionalQRCoef[2:5, 5] + (calcAverage * calcAverageCoefUQRSCSCFCFC$tau90))                                                 
+
+#print table in latex code
+print(xtable(averagePartialEffectUQR, type = "latex"), file = "averagePartialEffectUQR.tex") 
+
+#calculate confidence intervalls  set for for bootstraping (bigger then 5)
+modelUnconditionalQR.BCI = urqCI(modelUnconditionalQR , R=30 , seed=NULL , 
+                                 colour=NULL , confidence=NULL , graph=TRUE , 
+                                 cluster=NULL , BC=FALSE)
+
+
+\end{lstlisting}

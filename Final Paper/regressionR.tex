@@ -1,0 +1,409 @@
+\section{Regression Analysis}\label{Sec:regressionR}
+In order to analyze the effects of union coverage on wages and the wage distribution we will use three different econometric frameworks. Firstly, we will employ an OLS regression to investigate the effect on mean wages. However, the OLS regression framework of exploring the determinants of wages does not account for the possibility that covariates may have differential impacts across various parts of the wage distribution. Instead of focusing on the effect of union coverage on mean wages, the quantile regression approaches allow us to analyze the effects on different quantiles of the wage distribution. Hence, we can determine the contribution of union coverage to wage dispersion.
+
+\subsection{OLS}
+\subsubsection*{Theory}
+We are interested in the effect of union coverage on wages. Let $ Y $ denote the outcome variable hourly wage and $ F_y(y) $ its distribution function, where $ F_y(y)=Pr(Y\leq y) $. $ X $ determines the union coverage status of one of the two union regimes (firm-level or sectoral-level) and is therefore a dummy variable, $ x= \{0,1\}$. $ Y_1 $ and $ Y_0 $ can be denoted as the possible outcomes under alternate values of $ X $. Hence, $Y=X\cdot Y_1 + (1-X)\cdot Y_0$, if union coverage is statistically independent of the possible outcomes. The unconditional distribution function for Y can be expressed as a weighted average of conditional distribution function of Y given X, weighted by the unconditional distribution of X \citep{Borah&Basu:2013}:
+
+\begin{equation}\label{1}
+  F_{y}(y)=Pr(X=1)F_{Y|X}(y|X=1) + Pr(X=0)F_{Y|X}(y|X=0)
+\end{equation}
+
+The ordinary least squares estimator gives us a consistent estimator of the target parameter $\beta_{OLS}$, that measures the effect of a marginal change in $X$ on the conditional expectation of $Y$, $\beta_{OLS}=\E[Y|X=1]-\E[Y|X=0]$. However, in most cases, useful interpretations can only be drawn from the effect of a change in the unconditional distribution of $X$ on the unconditional distribution of $Y$. One convenient feature of the OLS estimator is, that it is a consistent estimator for the effect on the unconditional distribution of $Y$ as well,\footnote{ This holds true as long as the estimated model is linear in all parameters.} because:
+\begin{equation}\label{2}
+  \E [Y]=p(X)\E[Y|X=1]+(1-p(X))\E[Y|X=0]
+\end{equation}
+\begin{equation*}
+  \frac{d\E[Y]}{dp(X)}=\E[Y|X=1]- \E[Y|X=0]=\beta_{OLS}
+\end{equation*}
+
+Therefore, the coefficients obtained by OLS regression can be interpreted as the effect of a marginal change of $X$ on the unconditional mean of $Y$.
+
+\subsubsection*{Implementation}
+First, we are installing the package \texttt{dplyr} in order to be able to select specific cells in the data frame. The \texttt{stargazer} package allows us to construct a table as \LaTeX -output, summarizing the regression results.
+\lstset{firstnumber = 416}
+\begin{lstlisting}
+install.packages("dplyr")
+library(dplyr)
+install.packages("stargazer")
+library(stargazer)
+\end{lstlisting}
+The regression of log hourly wages is done with respect to a set of covariates $ X \equiv [I, F, V] $, where $ I $ represents individual worker characteristics, such as education, years in the firm, gender and full-time working status. Firm characteristics are denoted by $ F $ and include, but are not limited to region and the share of female employees. $V$ refers to a vector of union coverage variables, containing (i) dummy variables for sectoral (SC) and firm-level (FC) coverage, (ii) variables for the share of employees within a firm, covered by either sectoral (shareSC) or firm-level (shareFC) collective contracts and (iii) interaction effects. The resulting regression can be expressed as:
+\begin{equation}\label{OLS equation}
+\begin{split}
+   ln(w_{kn})= &  \beta_{0}+I_{kn}\beta_{X}+F_{n}\beta_{F} \\
+   & +SC_{kn}\beta_{SC}+FC_{kn}\beta_{FC}+ shareSC_{n}\beta_{shareSC} +shareFC_{n}\beta_{shareFC}\\
+   &  +SC_{kn} \cdot shareSC_{n}\beta_{shareSCxSC}+FC_{kn}\cdot shareFC_{n}\beta_{shareFCxFC} \\
+\end{split}
+\end{equation}
+\begin{center}with $k=1,\dots , K$ individual employees and $n=1,\dots , N$ firms.\end{center}
+In particular, we employ 4 different specifications of the regression model with different sets of wage bargaining indicators (\texttt{model1},..., \texttt{model4}, see quantlet 6. The \texttt{lm()} function is used to carry out the regression with \texttt{lnWage} being mentioned first as the dependent variable and all following variables as the explanatory variables, using the data set \texttt{dat}.
+\lstset{firstnumber = 421}
+\begin{lstlisting}
+#OLS regression with 4 different specifications
+model1 = lm (lnWage ~ FCTariffDummy + SCTariffDummy + ef10 + east + ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 + educ3 + shift + ef40 + agesq + ef41 + expsq + permanent , dat )
+\end{lstlisting}
+Using the \texttt{stargazer} package, we are generating a table, that summarizes the regression results of \texttt{model1, model2, model3, model4} line 431 in a single table. The option \texttt{keep} allows us to create a vector of covariates, whose coefficients we want to display in the table. For a better understanding, the labels are changed, using the option \texttt{covariate.labels}. The other options allow us to align the output at the decimal mark in the \LaTeX -output (\texttt{align}), omit the results for the F-statistic and standard error of regression (\texttt{omit.stat}), remove empty lines from the table (\texttt{no.space}) and determine the file name (\texttt{out}).
+\lstset{firstnumber = 430}
+\begin{lstlisting}
+#output table result in latex code
+stargazer(model1, model2, model3, model4, title="Results OLS Regression" ,
+          keep = c("FCTariffDummy", "SCTariffDummy", "shareFC" , "shareSC" , "shareFCFC" , "shareSCSC" , "ef10") ,
+          covariate.labels=c("Firm Contract","Sectoral Contract", "share FC","share SC","shareFCxFC","shareSCxSC" , "gender (male = 0)"),
+          align=TRUE , omit.stat=c("ser","f"),  no.space=TRUE, out = "olsregression.tex")
+\end{lstlisting}
+% Table created by stargazer v.5.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
+% Date and time: Fri, Aug 18, 2017 - 10:11:02 AM
+% Requires LaTeX packages: dcolumn
+\begin{table}[!htbp] \centering
+  \caption{Results OLS Regression}
+  \label{OLSresults}
+\begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} }
+\\[-1.8ex]\hline
+\hline \\[-1.8ex]
+ & \multicolumn{4}{c}{\textit{Dependent variable:}} \\
+\cline{2-5}
+\\[-1.8ex] & \multicolumn{4}{c}{lnWage} \\
+\\[-1.8ex] & \multicolumn{1}{c}{(1)} & \multicolumn{1}{c}{(2)} & \multicolumn{1}{c}{(3)} & \multicolumn{1}{c}{(4)}\\
+\hline \\[-1.8ex]
+ Sectoral Contract & 0.044^{***} &  & -0.053^{***} & 0.062^{***} \\
+  & (0.001) &  & (0.002) & (0.003) \\
+  Firm Contract & 0.058^{***} &  & -0.116^{***} & 0.060^{***} \\
+  & (0.001) &  & (0.004) & (0.008) \\
+  share SC &  & 0.044^{***} & 0.134^{***} & 0.218^{***} \\
+  &  & (0.001) & (0.002) & (0.003) \\
+  share FC &  & 0.070^{***} & 0.217^{***} & 0.313^{***} \\
+  &  & (0.002) & (0.005) & (0.006) \\
+  shareSCxSC &  &  &  & -0.212^{***} \\
+  &  &  &  & (0.005) \\
+  shareFCxFC &  &  &  & -0.294^{***} \\
+  &  &  &  & (0.011) \\
+  gender (male = 0) & -0.075^{***} & -0.071^{***} & -0.073^{***} & -0.073^{***} \\
+  & (0.001) & (0.001) & (0.001) & (0.001) \\
+ \hline \\[-1.8ex]
+Observations & \multicolumn{1}{c}{700,886} & \multicolumn{1}{c}{848,798} & \multicolumn{1}{c}{700,886} & \multicolumn{1}{c}{700,886} \\
+R$^{2}$ & \multicolumn{1}{c}{0.586} & \multicolumn{1}{c}{0.587} & \multicolumn{1}{c}{0.589} & \multicolumn{1}{c}{0.591} \\
+Adjusted R$^{2}$ & \multicolumn{1}{c}{0.586} & \multicolumn{1}{c}{0.587} & \multicolumn{1}{c}{0.589} & \multicolumn{1}{c}{0.591} \\
+\hline
+\hline \\[-1.8ex]
+\textit{Note:}  & \multicolumn{4}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\
+\end{tabular}
+\end{table}
+\subsubsection*{Results}
+
+
+The results of the OLS regression are presented in table \ref{OLSresults}. The regression results include a full set of firm-specific and individual covariates as well as different sets of union coverage variables. Specification (1) only includes the dummy variables for sectoral and firm-level collective coverage and suggests a union wage premium of $4.4\%$ for employees covered by a sectoral contract compared to employees without any collective bargaining contract. The union wage premium for employees under firm-level contracts is estimated to be even higher at $5.8\%$. Both effects are significant at the $1\%$-level.
+
+Specification (ii) is restricted to the effect of the shares of covered employees within a firm on log wages. It turns out, that a $10\%$ increase in the share of covered employees within a firm yields on average a $0.44\%$ increase in wages for employees under sectoral collective coverage, and a $0.70\%$ increase for employees under a firm-level contract, respectively. Again, both effects are significant at the $1\%$ level.
+
+In specification (iii), dummy variables for sectoral and firm-level coverage on an individual level as well as the firm-level coverage shares (shareSC and shareFC) are included. The individual coverage regime effects turn negative, whereas a higher share of covered employees in a firm is still associated with higher wages. In fact, the effects of higher coverage shares on wages increased to $1.34\%$ for a $10\%$ increase in the share of employees covered by a sectoral agreement ($2.17\%$ for a 10\% in crease in the share of employees covered by a firm-level agreement). Therefore, in a firm with close to $0\%$ coverage, union wage premiums turn negative. Conversely, in a firm with full coverage, the union wage premium is positive ($-0.053+100\% \cdot 0.134=0.081$ under sectoral contracts and $-0.116 +100\% \cdot 0.217=0.101$ under firm-level contracts).
+
+Interaction effects between individual coverage and the share of covered employees in a firm are introduced in specification (iv). The individual coverage coefficients turn positive again and the effect of an increasing share of covered employees within a firm rises as well, compared to the other specifications. However, the interaction effects are estimated to be negative, suggesting that in firms with low coverage, individual coverage leads to higher wages than in firms with high coverage. The effect of individual coverage by a sectoral collective contract (firm-specific contract) in a firm with an average coverage ratio is $-1.2\%$\footnote{ $\beta_{SC}+\overline{shareSC}\cdot \beta_{shareSCxSC}=0.062- 0.35\cdot 0.212 =-0.012$} ($4.2\%$)\footnote{ $\beta_{FC}+\overline{shareFC}\cdot \beta_{shareFCxFC}=0.060-0.06 \cdot 0.294=0.042$}. Hence, an employee under a sectoral collective contract who works in a firm with an average coverage ratio earns $1.2\%$ less than an uncovered employee in the same firm. This may be due to a risk-premium paid to the uncovered workers since the negotiated wages for covered workers represent a wage floor. An alternative explanation might be the employee's preferences for performance pay. Conversely, an employee under a firm-specific contract in a firm with an average coverage ratio earns $4.2\%$ more than an uncovered employee in the same firm. This could be a result of firms hiring cheap labor (e.g. after leaving an employer's association), while the incumbent employees remain covered by the collective bargaining agreements. An increase in the share of covered employees results in a larger benefit for uncovered employees than for covered employees since the effect for covered employees is reduced by the coefficient of the interaction term.
+
+The difference between wages for male and female employees is significant and fairly constant across OLS regression specifications. On average, male employees earn between $7.1\%$ and $7.5\%$ more than female employees.
+
+\subsection{Conditional Quantile Regression}\label{cqrimplement}
+\subsubsection*{Theory}
+As pointed out in \cite{Fitzenberger&Kohn&Lembcke:13}, there is a variety of reasons why the coverage regime affects parts of the entire wage distribution differently. For example, union policy is usually oriented towards benefiting low-wage employees, bringing us to expect larger effects of union coverage on lower quantiles of the wage distribution. Moreover, we can assess the ambiguous effect uncovered workers face in partly covered firms across quantiles.
+
+The conditional quantile regression approach has been widely used in empirical analysis in order to assess the impact of covariates on different points of the distribution of the outcome variable $Y$. In line with the empirical investigation at hand, conditional quantile regression can help to study the effect of different determinants on wages for people along the wage distribution, since the effect of a covariate on lower quantiles may differ from the effect on higher quantiles. OLS regression does not account for those differences.
+
+Analogously to equation \ref{1} for the OLS regression, we can develop the same approach for the $\tau$th-quantile, $q_{Y}(\tau)$, of the unconditional distribution of $Y$, where $\tau=F_{Y}(q_{Y}(\tau))$:
+
+\begin{equation}\label{3}
+  F_{Y}(q_{Y}(\tau))=Pr(X=1)F_{Y|X=1}(q_{Y}(\tau))+Pr(X=0)F_{Y|X=0}(q_{Y}(\tau)).
+\end{equation}
+
+Using implicit differentiation of equation \ref{3}, we can develop an expression for the unconditional quantile $\frac{dq_{\tau}}{dp(X)}$:
+\begin{equation*}
+  \frac{dF_{Y}(q_{Y}(\tau))}{dp(X)}=\frac{\partial F_{Y}(q_{\tau})}{\partial q_{Y}(\tau)}\cdot \frac{dq_{Y}(\tau)}{dp(X)}
+\end{equation*}
+\begin{equation*}
+  F_{Y|X=1}(q_{Y}(\tau))-F_{Y|X=0}(q_{Y}(\tau))=f_{Y}(q_{\tau})\cdot \frac{dq_{Y}(\tau)}{dp(X)}
+\end{equation*}
+\begin{equation}\label{4}
+  \frac{dq_{Y}(\tau)}{dp(X)}=\frac{F_{Y|X=1}(q_{Y}(\tau))-F_{Y|X=0}(q_{Y}(\tau))}{f_{Y}(q_{\tau})}
+\end{equation}
+
+When no other covariates are included in the regression model, the conditional effect equals the unconditional effect of a dummy variable for any quantiles of $Y$. Even if other covariates are included in the regression model, but the conditional effect does not depend on the distribution of the other covariates, conditional and unconditional treatment effects coincide for any quantile. Conversely, if the conditional treatment effect of $X$ varies over values of other covariates, conditional and unconditional effects will be likely to differ \citep{Borah&Basu:2013}.
+
+The Conditional Quantile Regression approach was firstly introduced by \cite{Koenker&Bassett:1978}. Let $Q_{\tau}(Y|Z) = Z^{'}\beta_{\tau}^{CQR}$ be the quantile, conditioned on the vector of covariates $Z$, such that $Q_{\tau}(Y|Z)=F^{-1}(\tau)=\inf_{q}\{q:F_{Y|Z}(q|Z)\geq\tau\}$ \citep{Borah&Basu:2013}.\footnote{ $\inf\{\}$ refers to the infimum operator defining the greatest value of $q$ that still represents a lower bound in the set $F_{Y|Z}(q|Z)\geq\tau$}
+
+In contrast to the OLS regression, in which the sum of squared residuals is minimized in order to obtain the $\beta_{OLS}$-vector, the vector of $\beta_{\tau}$ results from minimizing an asymmetric absolute loss function (i.e. the sum of weighted absolute residuals) \citep{Koenker&Bassett:1978}:
+
+\begin{equation}\label{5}
+  \min_{\beta_{\tau}\in R^{p}}\sum_{i=1}^n \rho_{\tau}(y_{i}-z_{i}^{'}\beta_{\tau})
+\end{equation}
+\begin{center}
+with $\rho_{\tau}(u)=u\cdot (\tau-I(u<0))$, $\forall \tau \in (0,1)$
+\end{center}
+\begin{equation}\label{6}
+  \Longrightarrow \min_{\beta_{\tau}\in R^{p}}\sum_{y_{i}\geq Z_{i}^{'}\beta}\tau \cdot \left| (y_{i}-Z_{i}^{'}\beta) \right| + \sum_{y_{i} < Z_{i}^{'}\beta}(1-\tau) \cdot \left| (y_{i}-Z_{i}^{'}\beta) \right|
+\end{equation}
+
+Following from equation \ref{6}, the so-called ''check function'' or absolute value function \citep{Koenker&Hallock:2001}, $\rho_{\tau}$ yields the $\tau$-th sample quantile as its solution as it weights the residuals $\left| (y_{i}-Z_{i}^{'}\beta) \right|$ with $\tau$ if they are positive, and with $(1-\tau)$ if they are negative. For $\tau=0.5$, positive and negative residuals are weighted equally and the sum of absolute deviations is minimized. For any $\tau > 0.5$ large positive errors are more heavily penalized than negative errors. The estimated coefficients $\hat{\beta_{\tau}}$ can be interpreted as marginal or partial effects on the conditional quantile $\tau$ for continuous and dummy variables, respectively.\\
+The coefficient for a dummy covariate estimated in a conditional quantile regression is given by
+\begin{equation}\label{7}
+  \beta_{\tau}^{CQR}=F_{Y|X=1 , W=\bar{\omega}}^{-1}(\tau) - F_{Y|X=0 , W=\bar{\omega}}^{-1}(\tau)
+\end{equation}
+and conditioned on the vector of sample means $\bar{\omega}$ of all other covariates $W$. In general, the conditional effect of $X$ on $Y$ does not equal the unconditional effect of $X$ on $Y$ if the conditional effect of $X$ depends on the levels of other covariates $W$:
+\begin{equation*}
+  F_{Y|X=1 , W=\bar{\omega}}^{-1}(\tau)=q_{Y|X=1 , W=\bar{\omega}}(\tau) \neq q_{Y}(\tau)
+\end{equation*}
+Therefore, the coefficients obtained by a conditional quantile regression are to be interpreted as the effects on the conditional quantile, conditioned on the distribution of all other covariates.
+\subsubsection*{Implementation}
+In order to execute conditional quantile regressions, we are using the \texttt{quantreg}  package.
+\lstset{firstnumber = 439}
+\begin{lstlisting}
+install.packages("quantreg")
+library(quantreg)
+\end{lstlisting}
+Firstly, we have to filter out all observations with empty values in the dependent variable \texttt{lnWage} from our data set \texttt{dat}, because otherwise the regression is not executable. The resulting reduced data set is called \texttt{quantileRegressionData}
+\lstset{firstnumber = 445}
+\begin{lstlisting}
+#delete NAs from lnwage
+quantileRegressionData   = dat %>% filter(!is.na(lnWage))
+\end{lstlisting}
+Secondly, we are creating a sequence from $0.05$ to $0.95$ in $0.05$ steps, which will be the quantiles that we obtain coefficients for in the conditional qunatile regression. Thereby, the sequence contains the quantiles we are interested in as well as additional quantiles, allowing us to plot our results in a more detailed fashion.
+\lstset{firstnumber = 449}
+\begin{lstlisting}
+quantile = seq(0.05, 0.95, by=0.05)    #set quantiles
+\end{lstlisting}
+ The \texttt{rq()} function is used to carry out the conditional quantile regression for the above defined quantiles \texttt{tau = quantile} with \texttt{lnWage} being mentioned first as the dependent variable and all following variables as the explanatory variables, using the data set \texttt{quantileRegressionData}. The results of the regression are saved in \texttt{modelConditionalQR}.
+\lstset{firstnumber = 452}
+\begin{lstlisting}
+modelConditionalQR = rq(lnWage ~ SCTariffDummy + shareSC + FCTariffDummy + shareFC + shareFCFC + shareSCSC + ef10 + east + ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 + educ3 + shift + ef40 + agesq + ef41 + expsq + permanent , data=quantileRegressionData, tau = quantile)
+\end{lstlisting}
+Now we want to plot our results. Hence, we save the summary of the conditional quantile regression results \texttt{modelConditionalQR} in \texttt{quantreg.plot} for plotting. We are defining the vector \texttt{plotvar} in order to be able to only plot the intercept and the seven first-mentioned regressors. The command \texttt{plot()} summarizes the OLS regression results and the conditional quantile regression results in one graph for each regressor, allowing for better comparability.
+\lstset{firstnumber = 453}
+\begin{lstlisting}
+quantreg.plot = (summary(modelConditionalQR))
+
+#define a vector of which variables' coefficients should be plotted
+plotvar = c(1, 2, 3, 4, 5, 6, 7, 8)
+plot(quantreg.plot, parm=plotvar)
+\end{lstlisting}
+In order to calculate the conditional average partial effects, we first assign the coefficients, obtained by the quantile regression, to a variable that we call \texttt{modelConditionalQRCoef}. Then, we convert the variable into a data frame in order to be able to construct a table.
+\lstset{firstnumber = 459}
+\begin{lstlisting}
+modelConditionalQRCoef = modelConditionalQR[1]
+modelConditionalQRCoef = as.data.frame(modelConditionalQRCoef)
+\end{lstlisting}
+Next, we are creating a vector \texttt{calcAverage} with the share of covered employees by a sectoral contract (first two entries) and a firm-level contract (latter two entries). The shares are taken from \texttt{lnWageSummaryTotal} and have been calculated in quantlet 5. We need the average coverage shares to calculate the average partial effects later on.
+\lstset{firstnumber = 462}
+\begin{lstlisting}
+#build vector with share for later calculation of the effects
+calcAverage = c(lnWageSummaryTotal$TotalEmpolyeeShare[1],
+                lnWageSummaryTotal$TotalEmpolyeeShare[1],
+                lnWageSummaryTotal$TotalEmpolyeeShare[2],
+                lnWageSummaryTotal$TotalEmpolyeeShare[2])
+\end{lstlisting}
+Now, we create a data frame \texttt{calcAverageCoefCQRSCSCFCFCQR}, containing the coefficients for the interaction terms \texttt{shareSCSC} and \texttt{shareFCFC} for each quantile. The first two entries contain the \texttt{shareSCSC} coefficient, whereas the latter two entries contain the \texttt{shareFCFC} coefficient of the specific quantile.
+\lstset{firstnumber = 468}
+\begin{lstlisting}
+#build data frame with results from conditional quantile regression
+calcAverageCoefCQRSCSCFCFCQR = data.frame(
+        tau10 = c(modelConditionalQRCoef[7, 2],  modelConditionalQRCoef[7, 2],
+                  modelConditionalQRCoef[6, 2],  modelConditionalQRCoef[6, 2]))
+\end{lstlisting}
+Finally, the conditional average partial effects are calculated. In line 477 we define a vector with labels for the rows. Then, the average partial effects are calculated for all quantiles, using the following formula: The obtained coefficient plus the average coverage ratio of the same regime times the interaction effect of the same regime. For \texttt{Sectoral Contract (SC)} that would be: $CAPE_{SC}=\beta_{SC}+\overline{shareSC}\cdot\beta_{shareSCSC}$
+\lstset{firstnumber = 476}
+\begin{lstlisting}
+#calculate average partial effects
+averagePartialEffectQR = data.frame(Quantiles = c("Sector Contract (SC)", "shareSC", "Firm Contract (FC)", "shareFC"),
+        tau10 = modelConditionalQRCoef[2:5, 2]  + (calcAverage * calcAverageCoefCQRSCSCFCFCQR$tau10))
+\end{lstlisting}
+
+\subsubsection*{Results}
+The results of the conditional quantile regression are summarized in table \ref{CQRresults}. The conditional average partial effects\footnote{Calculated at the mean coverage rates of firm-specific/sectoral contracts: e.g. for individual coverage at the sectoral level (10th percentile): $\beta_{SC}^{(10)}+\overline{shareSC}\cdot \beta_{shareSCxSC}^{(10)}=0.094-0.35 \cdot 0.163=0.0268$} are displayed in table \ref{APEs:CQRimplement}. Please note that the conditional average partial effect refers to an average partial effect, conditioned on the distribution of all other covariates. In the following, if not stated otherwise, all regression coefficients obtained by conditional quantile regression refer to the effects conditioned on the distribution of all other covariates.
+
+The median coefficients regarding employees, covered by a firm-level contract, are slightly higher than those obtained by the OLS regression, i.e. the conditional average partial effect of individual coverage by a firm-level contract is $6\%$ at the median (compared to $4.2\%$ from OLS regression) and an increase of $10\%$ in the share of covered employees within a firm with an average coverage ratio is estimated to increase wages by $3.3\%$ at the median. Increasing the share of covered employees by $10\%$ within a firm with an average coverage ratio under sectoral contracts results in a $2\%$ increase in wages at the median. Conditional quantile regression at the median yields a $-3\%$ conditional average partial effect for individual coverage by a sectoral collective agreement, whereas the OLS regression estimates suggest only a $-1.2\%$ union wage premium.\footnote{ A negative union wage premium means that uncovered workers earn more than covered workers.}
+
+The effect of an increasing coverage share at the firm level rises along the conditional wage distribution for firms, that apply firm-specific collective contracts. Therefore, wages on higher quantiles are estimated to respond stronger to an increase in the coverage share within a firm, compared to lower quantiles. As a result, an increasing share of covered employees tends to contribute to wage dispersion in firms with firm-specific contracts. The effect of applying a sectoral collective contract within a firm remains fairly the same across the entire wage distribution. Thus, increasing the share of covered employees within a firm that applies sectoral collective contracts increases wages for low-wage earners similarly to those of high-wage earners, compared to a situation of no coverage. The positive effect of sectoral or firm-level coverage, compared to no coverage, is declining along the wage distribution. The coefficient of individual coverage by firm-level contracts and sectoral-level contracts has a positive effect on lower conditional quantiles and a negative effect on higher conditional quantiles. Hence, individual coverage by any of the two bargaining regimes tends to reduce wage dispersion.
+
+The gender wage gap is significant at the $1\%$-level, at all estimated quantiles. Moreover, it increases from $4.8\%$ at the 10th percentile to $9.0\%$ at the 90th percentile, indicating that wage inequality between male and female workers is particularly high for high-income earners.
+
+The results of the OLS regression and the conditional quantile regression are summarized in figure \ref{Fig:CQROLScomparison}. In each diagram, the red line represents the OLS coefficient and the two dotted red lines indicated the $95\%$ confidence interval. Since the OLS coefficient only assesses the effect of a covariate on the mean of the wage distribution, it remains unchanged across quantiles. The dotted black line plots the conditional quantile regression coefficients for all quantiles defined in \texttt{quantile} line 449 and the grey area marks the $95\%$ confidence interval. Due to the fact that for all covariates, the conditional quantile regression coefficient lies outside of the confidence interval of the OLS regression coefficients for a great majority of quantiles, the two regression results significantly differ and justify the application of the quantile regression approach.
+
+However, in order to be able to make a clearly interpretable statement on the determinants of wages across quntiles, we have to implement an unconditional quantile regression.
+
+\begin{landscape}
+\begin{table}[]
+\scriptsize
+\centering
+\caption{Conditional Quantile Regression Results}
+\label{CQRresults}
+\begin{tabular}{l|cccccccccc}
+ percentile & \multicolumn{2}{c}{(10)} & \multicolumn{2}{c}{(25)} & \multicolumn{2}{c}{(50)} & \multicolumn{2}{c}{(75)} & \multicolumn{2}{c}{(90)}\\
+\hline
+                & coef.             & std. err. & coef.     & std. err.         & coef.             & std. err. & coef.         & std. err. & coef.         & std. err. \\
+\hline
+Sector Contract (SC)    & $0.094^{**}$      & $(0.005)$ & $0.105^{**}$   & $(0.003)$    & $0.087^{**}$      & $(0.003)$ & $0.044^{**}$  & $(0.003)$ & $0.007^{**}$  & $(0.004)$\\
+Firm Contract (FC)      & $0.155^{**}$      & $(0.011)$ & $0.131^{**}$   & $(0.007)$    & $0.088^{**}$      & $(0.007)$ & $0.035^{**}$  & $(0.008)$ & $0.018$       & $(0.016)$\\
+shareSC                 & $0.235^{**}$      & $(0.008)$ & $0.313^{**}$   & $(0.004)$    & $0.311^{**}$      & $(0.003)$ & $0.296^{**}$  & $(0.004)$ & $0.274^{**}$  & $(0.004)$\\
+shareFC                 & $0.313^{**}$      & $(0.011)$ & $0.346^{**}$   & $(0.009)$    & $0.356^{**}$      & $(0.009)$ & $0.371^{**}$  & $(0.011)$ & $0.382^{**}$  & $(0.010)$\\
+shareSCxSC              & $-0.163^{**}$     & $(0.009)$ & $-0.294^{**}$  & $(0.005)$    & $-0.327^{**}$     & $(0.005)$ & $-0.322^{**}$ & $(0.005)$ & $-0.313^{**}$ & $(0.006)$\\
+shareFCxFC              & $-0.280^{**}$     & $(0.017)$ & $-0.356^{**}$  & $(0.012)$    & $-0.386^{**}$     & $(0.012)$ & $-0.388^{**}$ & $(0.014)$ & $-0.395^{**}$ & $(0.020)$\\
+gender (0=male)         & $-0.048^{**}$     & $(0.002)$ & $-0.049^{**}$  & $(0.001)$    & $-0.055^{**}$     & $(0.001)$ & $-0.070^{**}$ & $(0.001)$ & $-0.090^{**}$ & $(0.002)$\\
+\hline
+$N$                     & \multicolumn{2}{c}{700886} & \multicolumn{2}{c}{700886} & \multicolumn{2}{c}{700886} & \multicolumn{2}{c}{700886} & \multicolumn{2}{c}{700886} \\
+\hline
+\end{tabular}\\
+\bigskip
+Conditional quantile regression includes a full set of firm-specific and individual-worker covariates.\\
+$^{*}$/$^{**}$: significance at the 5\%/1\% -level
+\end{table}
+\begin{table}[]
+\scriptsize
+\centering
+\caption{Average Partial Effects obtained by Conditional Quantile Regression}\vspace{0.2cm}
+\label{APEs:CQRimplement}
+\begin{tabular}{rlrrrrr}
+  \hline
+ & Quantiles & tau10 & tau25 & tau50 & tau75 & tau90 \\
+  \hline
+1 & Sector Contract (SC) & 0.04 & 0.00 & -0.03 & -0.07 & -0.10 \\
+  2 & shareSC & 0.18 & 0.21 & 0.20 & 0.18 & 0.16 \\
+  3 & Firm Contract (FC) & 0.14 & 0.11 & 0.06 & 0.01 & -0.01 \\
+  4 & shareFC & 0.30 & 0.32 & 0.33 & 0.35 & 0.36 \\
+   \hline
+\end{tabular}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{figure}[ht]
+  \begin{center}
+   \caption{Comparison of OLS Regression Results and Conditional Quantile Regression Results}
+   \bigskip
+    \includegraphics[width=195mm,scale=0.5]{Rplot01}\\
+    \label{Fig:CQROLScomparison}
+    \footnotesize Data source: GSES 2010
+  \end{center}
+\end{figure}
+\end{landscape}
+\subsection{Unconditional Quantile Regression}
+\subsubsection*{Theory}
+Since the conditional quantile regression approach is used to estimate the impact of a covariate on a quantile of the outcome variable, conditional on the distribution of other covariates, it lacks generalizability and the interpretation of the estimated treatment effects across quantiles becomes problematic.
+Conversely, the unconditional quantile regression approach, firstly introduced by \cite{Firpo&Fortin&Lemieux:09}, marginalizes the effect over the distributions of other covariates and hence, overcomes the limitations of the conditional quantile regression approach. It is therefore advisable to use the unconditional quantile regression approach if the model contains multiple covariates and interaction effects. Unconditional quantile regressions are applicable to many research fields and have for example been used to investigate the determinants of medication adherence \citep{Borah&Basu:2013} or the effect of cigarette tax increases on smoking behavior \citep{Maclean&Marti&Webber:2014}.
+
+There are several ways to generalize the effect of a covariate on the unconditional quantile of the outcome variable. One option is to use the coefficient estimates of the conditional quantile regression in order to recover equation \ref{4}. \cite{Firpo&Fortin&Lemieux:09} show that the unconditional quantile partial effect of a covariate $X$ on $Y$, $UQPE(\tau)$, equals a weighted average (over the distribution of $X$) of the partial effect of $X$, $CQPE(\zeta_{\tau}, X)$, on a specific conditional quantile $\zeta_{\tau}(X)$ of $Y$, corresponding to the $\tau$-th unconditional quantile of the distribution of $Y$, that we are interested in. In general, it holds true that the conditional quantile partial effect of $X$ does not average up to the effect on the same unconditional quantile, $UQPE(\tau) \neq \E[CQPE(\tau, X)]$.\footnote{ except for a linear, additively separable model} In order to gain a better understanding of the relationship between conditional and unconditional quantile partial effects let us assume that we are interested in the $UQPE$ for the median of the wage distribution, $UQPE(\tau = 0.5)$. If union coverage had a positive effect on wages, the overall median would perhaps correspond to the $25^{th}$ percentile of those covered by a union, and to the $75^{th}$ percentile of those not covered by a union: $\zeta_{0.5}(X=1)=0.25$ and $\zeta_{0.5}(X=0)=0.75$. The average of the two conditional quantile partial effects results in the unconditional quantile partial effect at the median, whereas taking the average of the medians of the two conditional quantiles may yield a different result. Hence, this approach can only be implemented if the unconditional quantiles of $Y$ can be mapped to the corresponding conditional quantiles under different conditioning arguments, which is often not feasible \citep{Borah&Basu:2013}.
+
+The recently introduced approach by \cite{Firpo&Fortin&Lemieux:09} uses the concept of recentered influence functions (RIFs) to perform unconditional quantile regressions. The influence function is a statistical tool applicable to robust estimation of econometric models and defined as
+\begin{equation}\label{8}
+  IF(y;v(F))=\lim_{\epsilon \rightarrow 0}\frac{[v((1-\epsilon)F+\epsilon \delta_{y})-v(F)]}{\epsilon} , 0 \leq \epsilon \leq 1
+\end{equation}
+where $F$ is the sample probability distribution of $Y$ and $\delta_y$ represents the distribution for a point mass at the value $y$. Hence, the mixture distribution $(1-\epsilon)F + \epsilon \delta_{y}$ consists of the actual distribution $F$ weighted by $(1-\epsilon)$ and the value $y$ weighted by $\epsilon$. The influence function therefore assesses the marginal influence of an observation at the value $y$ on the distributional statistic $v(F)$. The recentered influence function is obtained by adding back the distributional statistic $v(F)$ to its influence function:
+\begin{equation}\label{9}
+  RIF(y;v)=v(F)+IF((y;v)
+\end{equation}
+One advantageous property of the recentered influence function is that its expectation equals the distributional statistic $v(F)$: $\E[RIF(y;v)]=v(F)$. Take for example the mean, $\mu$ as the statistic of interest, then, using L'H\^opital's rule: \footnote{ $\lim_{\epsilon \rightarrow 0}\frac{[(1-\epsilon)\mu + \epsilon y -\mu]}{\epsilon} = \frac{''0''}{''0''} \longrightarrow$ L'H\^opital's rule yields: $\frac{f'(\epsilon)}{g'(\epsilon)}=\frac{-\mu + y}{1}=y-\mu$}
+\begin{equation}\label{10}
+  RIF(y;\mu)=\mu + \lim_{\epsilon \rightarrow 0}\frac{[(1-\epsilon)\mu + \epsilon y -\mu]}{\epsilon}=\mu +(y-\mu)=y
+\end{equation}
+\begin{equation*}\label{11}
+  \E[RIF(y;\mu)]=\mu
+\end{equation*}
+Then, the recentered influence function yields the value of Y itself, implying that regressing the recentered influence function for the mean on $X$ yields the same coefficients as an ordinary least squares regression.\\
+Now, let us change the statistic of interest to a specific quantile $\tau$ of the outcome distribution and determine the influence function. Therefore, we denote the quantile of the mixture distribution as:
+\begin{equation}\label{12}
+  q_{\tau}((1-\epsilon)F+\epsilon \delta_{y})=q_{\tau}^{'}
+\end{equation}
+We have
+\begin{equation*}
+  (1-\epsilon)F(q_{\tau}^{'})+\epsilon \delta_{y}(q_{\tau}^{'})=\tau
+\end{equation*}
+with $\delta_{y}(q_{\tau}^{'})=I(Y\leq q_{\tau}^{'})$, a dummy variable determining whether the outcome variable is below $q_{\tau}$. Using the implicit function theorem leads us to:
+\begin{equation*}\label{13}
+  \frac{\partial q_{\tau}^{'}}{\partial \epsilon}=-\frac{-F(q_{\tau}^{'})+I(Y \leq q_{\tau}^{'})}{(1-\epsilon)f_{Y}(q_{\tau}^{'})}
+\end{equation*}
+For $\epsilon \rightarrow 0$, $q_{\tau}^{'} \rightarrow q_{\tau}$ and $F(q_{\tau}^{'}) \rightarrow \tau$
+\begin{equation}\label{14}
+  IF(y;q_{\tau})=\frac{\tau - I(Y \leq q_{\tau})}{f_{Y}(q_{\tau})}
+\end{equation}
+where $q_{\tau}$ represents the $\tau$-th quantile of the unconditional distribution of $Y$ and $f_{Y}(q_{\tau})$ refers to the probability density function of $Y$. Consequently, the recentered influence function is:
+\begin{equation}\label{15}
+  RIF(y;q_{\tau})=q_{\tau}+IF(y;q_{\tau})=q_{\tau} + \frac{\tau - I(Y \leq q_{\tau})}{f_{Y}(q_{\tau})}
+\end{equation}
+\cite{Firpo&Fortin&Lemieux:09} call the expectation of the $RIF(Y; v,F_{Y})$, conditional on the explanatory variables $X$, the \emph{RIF regression model}, $\E[RIF(Y; v, F_{Y})|X]=m_{v}(X)$. Constructed for quantiles, $\E[RIF(Y; q_{\tau,} F_{Y})|X]=m_{\tau}(X)$ represents an \emph{unconditional quantile regression}. Furthermore, they show that the average derivative of the unconditional quantile regression, $\E[m_{\tau}^{'}(X)]$, can be interpreted as the marginal effect on the unconditional quantile of interest, resulting from a small location shift in the distribution of covariates, ceteris paribus. Similarly to an OLS regression, the recentered influence function can be regressed on the set of covariates $X$. Therefore, we need to estimate
+\begin{equation*}
+  \widehat{RIF}(Y; \hat{q}_{\tau})=\hat{q}_{\tau}+ \frac{\tau - I(Y \leq \hat{q}_{\tau})}{\hat{f}_{Y}(\hat{q}_{\tau})}.
+\end{equation*}
+The estimated density of $Y$, $\hat{f}_{Y}(\hat{q}_{\tau})$ can be obtained by using, for example, the kernel density estimator, whereas $\hat{q}_{\tau}$ is determined by estimating the unconditional quantile $\tau$, based on the sample at hand.
+\subsubsection*{Implementation}
+In order to employ unconditional quantile regression, we employ the package \texttt{uqr}.
+\lstset{firstnumber = 491}
+\begin{lstlisting}
+install.packages("uqr")
+library(uqr)
+\end{lstlisting}
+Since our quantiles of interest are now reduced to only five, because we do not create another graphic comparison, we define a vector, which specifies the quantiles that the regression should be executed for.
+\lstset{firstnumber = 494}
+\begin{lstlisting}
+quantile2=c(0.1, 0.25, 0.5, 0.75, 0.9)
+\end{lstlisting}
+Applying the \texttt{uqr} function to our model, with \texttt{lnWage} as the dependent variable and all following variables as the explanatory variables, we can estimate unconditional quantile regression coefficients. Again, we are using the data set \texttt{quantileRegressionData} and our previously defined vector of quantiles of interest. Our results are saved in \texttt{modelUnconditionalQR}.
+\lstset{firstnumber = 495}
+\begin{lstlisting}
+modelUnconditionalQR = urq(lnWage ~  SCTariffDummy + shareSC + FCTariffDummy + shareFC + shareFCFC + shareSCSC + ef10 + east + ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 + educ3 + shift + ef40 + agesq + ef41 + expsq + permanent, data=quantileRegressionData, tau = quantile2 )
+\end{lstlisting}
+The calculation of the unconditional average partial effects is implemented in the same way as the calculation for the conditional average partial effects, which has been described in section \ref{cqrimplement}. The results of the calculation are summarized in the table \texttt{\dq averagePartialEffectUQR.tex\dq} and put out in \LaTeX-code.
+\lstset{firstnumber = 518}
+\begin{lstlisting}
+print(xtable(averagePartialEffectUQR, type = "latex"), file = "averagePartialEffectUQR.tex") #print table in latex code
+\end{lstlisting}
+In order to test coefficients for significance, we are constructing confidence intervals for the obtained coefficients, determining the standard errors and p-values, using bootstrapping with \texttt{R = 30} replications. The remaining options are set to default values.
+\lstset{firstnumber = 521}
+\begin{lstlisting}
+modelUnconditionalQR.BCI = urqCI(modelUnconditionalQR , R = 30, seed=NULL , colour=NULL , confidence=NULL , graph=TRUE , cluster=NULL , BC=FALSE)
+\end{lstlisting}
+\subsubsection*{Results}
+The results of the unconditional quantile regression are displayed in table \ref{UQRimplement} and the resulting unconditional average partial effects are summarized in table \ref{APEs:UQRimplement}. Similarly to the OLS regression, the coefficients of the quantile regression can now be interpreted as effects on the unconditional wage distribution.
+
+Compared to the conditional quantile regression estimates, the coefficients obtained by an unconditional quantile regression have significantly larger spreads across the wage distribution. For example, the individual union wage premium for an employee, covered by a sectoral contract in a firm with an average coverage ratio, declined monotonically from $4\%$ at the 10th percentile to $-10\%$ at the 90th percentile in a conditional quantile regression setting. In contrast, the average partial effect for individual coverage at the sectoral level decreases from $20\%$ at the 10th percentile to $-51\%$ at the 90th percentile of the unconditional wage distribution. This means that an employee, working under a sectoral collective contract in a firm with an average coverage ratio earns on average $20\%$ more than an uncovered employee in the same firm, at the 10th percentile. At the top end of the wage distribution (90th percentile), the uncovered employee earns on average $51\%$ more than the covered employee. The reason for that trend may be that firms want to pay a premium to highly productive employees, e.g. employees with management responsibilities. Furthermore, these employees cannot rely on a collective contract as a fall back position and are therefore paid a risk premium, as argued before. For firm-level coverage the effects are estimated to be less drastic, meaning that the union wage premium for covered employees at the bottom end of the distribution is less than under a sectoral contract. In return, the negative union wage premium at the top of the distribution is lower than under sectoral bargaining coverage as well. Under firm-level coverage, effects remain fairly constant and positive over quantiles, before they drop and become negative towards the top of the distribution.
+The average partial effects for an increase in the share of covered employees within a firm, under both coverage regimes, are different from the effects obtained in table \ref{APEs:CQRimplement}. While the effect is negative at lower quantiles, the effects become larger and positive at the top end of the wage distribution for both coverage regimes. For example, a $10\%$ increase in the share of covered employees by a sectoral contract in a firm with an average coverage rate, leads to a $-1.6\%$ decrease in wages at the 10th percentile and a $6.6\%$ increase at the 90th percentile of the unconditional wage distribution. Therefore, an increasing share of covered employees contributes to wage dispersion. Whereas the interaction coefficients are negative at all quantiles and only tendentially declining across quantiles in table \ref{CQRresults}, they decrease significantly more using unconditional quantile regression, and are even positive on lower quantiles. Hence, the effect of individual coverage in high coverage firms is particularly positive for employees on lower quantiles and particularly negative for employees on higher quantiles. Similarly to the conditional quantile regression results, the unconditional quantile regression results yield a significant gender wage gap. The gender wage gap increases over quantiles from $0.8\%$ at the 10th percentile to $17.7\%$ at the 90th percentile.
+\begin{landscape}
+\begin{table}[]
+\scriptsize
+\centering
+\caption{Unconditional Quantile Regression Results}
+\label{UQRimplement}
+\begin{tabular}{l|cccccccccc}
+ percentile & \multicolumn{2}{c}{(10)} & \multicolumn{2}{c}{(25)} & \multicolumn{2}{c}{(50)} & \multicolumn{2}{c}{(75)} & \multicolumn{2}{c}{(90)}\\
+\hline
+ & coef. & std. err. & coef. & std. err. & coef. & std. err. & coef. & std. err. & coef. & std. err. \\
+\hline
+Sector Contract (SC)    & $0.155^{**}$ & $(0.001)$ & $0.200^{**}$ & $(0.001)$ & $0.096^{**}$ & $(0.000)$ & $0.028^{**}$ & $(0.001)$ & $-0.175^{**}$ & $(0.001)$\\
+Firm Contract (FC)      & $0.058^{**}$ & $(0.001)$ & $0.146^{**}$ & $(0.001)$ & $0.106{**}$ & $(0.000)$ & $0.174^{**}$ & $(0.001)$ & $-0.101^{**}$ & $(0.001)$\\
+shareSC                 & $-0.208^{**}$ & $(0.001)$ & $0.055^{**}$ & $(0.001)$ & $0.141^{**}$ & $(0.000)$ & $0.279^{**}$ & $(0.001)$ & $0.996^{**}$ & $(0.004)$\\
+shareFC                 & $-0.070^{**}$ & $(0.001)$ & $0.133^{**}$ & $(0.001)$ & $0.168^{**}$ & $(0.000)$ & $0.318^{**}$ & $(0.001)$ & $0.939^{**}$ & $(0.004)$\\
+shareSCxSC              & $0.131^{**}$ & $(0.002)$ & $-0.078^{**}$ & $(0.001)$ & $-0.057^{**}$ & $(0.000)$ & $-0.283^{**}$ & $(0.001)$ & $-0.958^{**}$ & $(0.004)$\\
+shareFCxFC              & $0.134^{**}$ & $(0.001)$ & $-0.015^{**}$ & $(0.001)$ & $-0.110^{**}$ & $(0.000)$ & $-0.544^{**}$ & $(0.002)$ & $-0.963^{**}$ & $(0.004)$\\
+gender (male=0)         & $-0.008^{**}$ & $(0.000)$ & $-0.023^{**}$ & $(0.000)$ & $-0.029^{**}$ & $(0.000)$ & $-0.106^{**}$ & $(0.000)$  & $-0.177^{**}$ & $(0.001)$\\
+\hline
+$N$                     & \multicolumn{2}{c}{700886} & \multicolumn{2}{c}{700886} & \multicolumn{2}{c}{700886} & \multicolumn{2}{c}{700886} & \multicolumn{2}{c}{700886} \\
+\hline
+\end{tabular}\\
+\bigskip
+Unconditional quantile regression includes a full set of firm-specific and individual-worker covariates.\\
+$^{*}$/$^{**}$: significance at the 5\%/1\% -level
+\end{table}
+\begin{table}[]
+\scriptsize
+\centering
+\caption{Average Partial Effects obtained by Unconditional Quantile Regression}\vspace{0.2cm}
+\label{APEs:UQRimplement}
+\begin{tabular}{rlrrrrr}
+  \hline
+ & Quantiles & tau10 & tau25 & tau50 & tau75 & tau90 \\
+  \hline
+1 & Sector Contract (SC) & 0.20 & 0.17 & 0.08 & -0.07 & -0.51 \\
+  2 & shareSC & -0.16 & 0.03 & 0.12 & 0.18 & 0.66 \\
+  3 & Firm Contract (FC) & 0.07 & 0.14 & 0.10 & 0.14 & -0.16 \\
+  4 & shareFC & -0.06 & 0.13 & 0.16 & 0.29 & 0.88 \\
+   \hline
+\end{tabular}
+\end{table}
+\end{landscape}
+
+

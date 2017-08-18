@@ -1,0 +1,310 @@
+\section{Data Preparation}\label{Sec:Data_Prep}
+The goal of the data preparation part is to bring the data in form which can be later used for the descriptive statistics as well as the regression analysis part. This section contains two quantlets which are stated below. The main part of the first quantlet is to build a function which calculates the respondents per company. The second quantlet produces variables to indicate how many employees per company are covered by a union contract or not. In both quantlets we generate dummy variables, which are necessary for carrying out the regression analysis.
+
+\subsection{Implementation}
+First we calculate how many respondents exist per company. To determine this we create a general function which can be applied on other data sets with similar structure, since the function takes a vector as input value which contains the information on which employee belongs to which company. The function is called with the following command:
+\lstset{firstnumber = 31}
+\begin{lstlisting}
+respond = respondFunc(dat$ef1)
+\end{lstlisting}
+For explaining the function code we use a small example. Assume we have the following simplified data set containing only five employees and the company they belong to:
+\begin{table}[h!]
+\centering
+\caption{Example Data 1}
+\label{ex1}
+\begin{tabular}{|l|l|}
+\hline
+observation & company \\ \hline
+1           & 1       \\ \hline
+2           & 1       \\ \hline
+3           & 2       \\ \hline
+4           & 2       \\ \hline
+5           & 3       \\ \hline
+\end{tabular}
+\end{table}
+\newline
+The function \texttt{respondFunc} creates a vector called \texttt{respond} with the length of the data vector passed into the function. In our example from table \ref{ex1} the vector has the length of five:
+\lstset{firstnumber = 19}
+\begin{lstlisting}
+ respond = numeric(length(dat))
+\end{lstlisting}
+After setting the counting variables to one we create an auxiliary variable \texttt{temp}. In \texttt{temp} the frequency of every variable of the giving data vector is stored by using the R integrated function \texttt{table}:
+\lstset{firstnumber = 22}
+\begin{lstlisting}
+ temp = table(dat) 
+ \end{lstlisting}
+Applying the function to our small example we obtain an absolute frequency table:
+ \begin{table}[h!]
+\centering
+\caption{Output \texttt{table}}
+\label{my-label}
+\begin{tabular}{|l|l|}
+\hline
+company & frequency \\ \hline
+1       & 2         \\ \hline
+2       & 2         \\ \hline
+3       & 1         \\ \hline
+\end{tabular}
+\end{table}
+
+Furthermore we integrate a \texttt{for loop} in our function which goes through all observations and saves the number of respondents per company for each company. Again we demonstrate this procedure in our small example. The \texttt{for loop} is stated out below:
+\lstset{firstnumber = 23}
+\begin{lstlisting}
+for (i in 1:length(dat)){                 
+    j = dat[i]                           
+    respond[i] = temp[j]                  
+    i = i+1              
+  } \end{lstlisting}
+In our example the \texttt{for loop} would work five times as we have five employees. The value of the first employee e.g. in which company the first employee is working is stored in \texttt{j}. Then the function accesses the \texttt{j}th element of \texttt{temp} and stores the information in the \texttt{i}th element of \texttt{respond}. Since \texttt{temp} stores the number of employees per company we obtain following result for our example:
+\begin{table}[h!]
+\centering
+\caption{Result \texttt{respondfunc} example}
+\label{my-label}
+\begin{tabular}{|l|l|l|}
+\hline
+observation & company & respondents per company \\ \hline
+1           & 1       & 2                       \\ \hline
+2           & 1       & 2                       \\ \hline
+3           & 2       & 2                       \\ \hline
+4           & 2       & 2                       \\ \hline
+5           & 3       & 1                       \\ \hline
+\end{tabular}
+\end{table}
+
+
+For further investigation we need several dummy variables Therefore we create al function to create dummy variables since this procedure is for most of the dummy variables the same. The function takes two values as input variables:
+\lstset{firstnumber = 43}
+\begin{lstlisting}
+dummyFunc = function(dat , x)
+\end{lstlisting}
+The \texttt{dat} will be the information vector and the \texttt{x} will be one level which will be compared to the vector. The function itself contains only one line of code:
+\lstset{firstnumber = 40}
+\begin{lstlisting}
+ d = as.numeric(dat == levels(dat)[x])      
+  return(d)
+}
+\end{lstlisting}
+In line 40 we use the implemented function in R called \texttt{as.numeric} together with a comparison. The \texttt{as.numeric} function converts a \texttt{TRUE} value into ones and a \texttt{FALSE} value in zeros. The first dummy variable which needed to be created is dummy for east and west. If the dummy is zero that means the employee is working in a company in west Germany. This is done be the function call shown below:
+\lstset{firstnumber = 45}
+\begin{lstlisting}
+east = dummyFunc(dat$ef4be , 5)
+dat["east"] = east       
+\end{lstlisting}
+The dummy variable \texttt{east} is added to the data frame at the end. Using this function we have to pay attention to the levels we want to do the comparison inside the function. The next dummy we create is a dummy for education. Therefore we use our function \texttt{dummyFunc}. Moreover we reduce the number of different dummies from six to three by simple addition of two dummies which we want to combine. The whole procedure is stated out below:
+\lstset{firstnumber = 49}
+\begin{lstlisting}
+tempEdu1  = dummyFunc(dat$ef16u2 , 1 )
+tempEdu1a = dummyFunc(dat$ef16u2 , 2 )
+tempEdu2  = dummyFunc(dat$ef16u2 , 3 )
+tempEdu2a = dummyFunc(dat$ef16u2 , 4 )
+tempEdu3  = dummyFunc(dat$ef16u2 , 5 )
+tempEdu3a = dummyFunc(dat$ef16u2 , 6 )
+tempNa    = dummyFunc(dat$ef16u2 , 7 )
+tempNa[tempNa == 1] = NA                
+
+educ1 = tempEdu1 + tempEdu1a + tempNa
+educ2 = tempEdu2 + tempEdu2a + tempNa
+educ3 = tempEdu3 + tempEdu3a + tempNa
+
+dat["educ1"] = educ1                   
+dat["educ2"] = educ2
+dat["educ3"] = educ3  
+\end{lstlisting}
+In line 55 and line 56 we convert the missing values from the data. Line 66 to 68 shows the calculation of the dummies. The same procedure is applied by creatig dummies for employees with a permanent contract.
+For creating a dummy variable for employees working in shifts we use a different comparison. That is why we cannot use our function described before:
+\lstset{firstnumber = 72}
+\begin{lstlisting}
+shift        = as.numeric(dat$ef23 >= 1)
+dat["shift"] = shift                       
+\end{lstlisting}
+The statement in line 72 evaluates to 1 if the compared value is larger or equal to 1. Using similar approach we create a dummy for employees working full-time and reduce dimension. In this case we cannot use our pre-defined function as the comparison is different.
+\lstset{firstnumber = 76}
+\begin{lstlisting}
+tempFull1 = as.numeric(dat$ef16u1 != "Teilzeitbeschaeftigt - Beamter")
+tempFull2 = as.numeric(dat$ef16u1 != "Teilzeitbeschaeftigt - weniger als 18 Std.")
+tempFull3 = as.numeric(dat$ef16u1 != "Teilzeitbeschaeftigt - 18 Std. und mehr")
+fulltime  = tempFull1+tempFull2+tempFull3 - 2
+dat["fulltime"] = fulltime         
+\end{lstlisting}
+We get ones for all values of \texttt{dat\$ef16u1} which do not match with the chosen level. In line 79 the addition is done. We have to subtract the dummy by 2 to get a normal zero and one dummy variable. The next dummy variable we create shows whether a worker gets the minimum wage or not. The calculation procedure is the same as before and is not stated out again:
+\lstset{firstnumber = 83}
+\begin{lstlisting}
+minimumWage   = as.numeric(dat$ef31be != "nein")
+minimumWageNa = dummyFunc(dat$ef31be , 3 )
+minimumWageNa[minimumWageNa == 1] = NA           #add NA's from dataset
+minimumWage        = minimumWage+minimumWageNa
+dat["minimumWage"] = minimumWage + minimumWageNa 
+\end{lstlisting}
+
+
+The second part of the data preparation is done below. We build a \texttt{contractFunc} and create new variables later used for our regression analysis. In this part we calculate how many employees per company have a collective bargaining agreement and if they have a collective bargaining agreement. We distinguish between individual contract and firm wide contract. Our function has three input parameters:
+\lstset{firstnumber = 91}
+\begin{lstlisting}
+contractFunc = function(a,b,c){   
+\end{lstlisting}
+The \texttt{a} is the company dummy. It shows to which company each employee belongs to. The \texttt{b} is the information vector filled with the dummies which sais if the employee has collective bargaining agreement or not and if the employee has one. It distinguishes between individual contract and firm wide contract. With the input \texttt{c}  we choose the level. In our case we have three different options as already stated out. As this function is a more complex function we use the example data to explain the method (see table \ref{ex2}):
+\newline
+\begin{table}[h!]
+\centering
+\caption{Example Data 2}
+\label{ex2}
+\begin{tabular}{|l|l|l|}
+\hline
+observation & company & contract \\ \hline
+1           & 1       & 1 = no contract        \\ \hline
+2           & 1       & 1        \\ \hline
+3           & 1       & 2 = individual contract       \\ \hline
+4           & 2       & 2        \\ \hline
+5           & 2       & 3 = firm wide contract       \\ \hline
+6           & 2       & 3        \\ \hline
+7           & 2       & 1        \\ \hline
+8           & 2       & 2        \\ \hline
+9           & 3       & 1        \\ \hline
+10          & 3       & 1        \\ \hline
+\end{tabular}
+\end{table}
+\newline
+\lstset{firstnumber = 96}
+\begin{lstlisting}
+temp = table(a)
+cumtemp = cumsum(temp)                   
+cumtemp = append(cumtemp,0,after =0)    
+\end{lstlisting}
+First we use an integrated function \texttt{table} to calculate how many different employees we have per company and store its value in \texttt{temp}. Then in line 97 the cumulated sum is calculated using the function \texttt{cumsum}. This is done for correct storing of the results later as the frequency on how many people have a collective bargaining agreement or not will be calculated for each company. For a correct starting value we need to add zero as the first value which is done in line 98.The result would have following output:
+\newline
+\begin{table}[h!]
+\centering
+\caption{Output \texttt{table} 2 and cumulated sum}
+\label{my-label}
+\begin{tabular}{|l|l|l|}
+\hline
+company & frequency & cumulated \\ \hline
+        &           & 0         \\ \hline
+1       & 3         & 3         \\ \hline
+2       & 5         & 8         \\ \hline
+3       & 2         & 10        \\ \hline
+\end{tabular}
+\end{table}
+\newline
+After those calculations the main part of the function is stated out below:
+\lstset{firstnumber = 100}
+\begin{lstlisting}
+ g = nrow(temp) +1
+  i = 2                                   
+  j = 1
+  k = 1
+  q = numeric(length(b))
+  for (i in 2:g){
+    k = cumtemp[i-1]+1                    
+    j = cumtemp[i]                         
+    p = table(b[k:j])                     
+    q[k:j]  = p[c]                   
+    i = i+1
+  }
+  return(q)
+}   
+\end{lstlisting}
+Some initializations of different counting variables are done and are not further commented. In the initializations of the \texttt{for loop} you can see that it will loop over every company in the data set (there is a total of 32220 companies in the data set). In \texttt{k} will be stored the $i-1$ value of the cumulated sum. Which will be the first employee of company x. If we would have not appended the zero in line 98 we would leave out the first company. In line 107 the last employee of company x is stored in \texttt{j}. In line 108 we use the function \texttt{table} again and apply on the data vector passed on to the function on the before calculated sector (e.g. company x from \texttt{k} to \texttt{j}). The result of \texttt{table} is then stored in \texttt{p}. Then we store the information of \texttt{p} with the chosen level in \texttt{q} in line 109. As an output for our example we get:
+\begin{table}[h!]
+\centering
+\caption{Output after running the loop}
+\label{label}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+observation & company & no contract & indivdiual contract & firm wide contract \\ \hline
+1           & 1       & 2           & 1                   & 0                  \\ \hline
+2           & 1       & 2           & 1                   & 0                  \\ \hline
+3           & 1       & 2           & 1                   & 0                  \\ \hline
+4           & 2       & 1           & 2                   & 2                  \\ \hline
+5           & 2       & 1           & 2                   & 2                  \\ \hline
+6           & 2       & 1           & 2                   & 2                  \\ \hline
+7           & 2       & 1           & 2                   & 2                  \\ \hline
+8           & 2       & 1           & 2                   & 2                  \\ \hline
+9           & 3       & 2           & 0                   & 0                  \\ \hline
+10          & 3       & 2           & 0                   & 0                  \\ \hline
+\end{tabular}
+\end{table}
+
+The calculations for our three different levels is then done with three functions calls. After the calculation the values are stored in the data frame as well:
+\lstset{firstnumber = 116}
+\begin{lstlisting}
+noTariff = contractFunc(dat$ef1, dat$ef8, 1)
+SCTariff = contractFunc(dat$ef1, dat$ef8, 2)
+FCTariff = contractFunc(dat$ef1, dat$ef8, 3) 
+dat["noTariff"] = noTariff                
+dat["SCTariff"] = SCTariff
+dat["FCTariff"] = FCTariff
+\end{lstlisting}
+The next step was to create shares on how many employees per company have an individual contract (line 125) and also for firm wide contracts (line 124). The calculated values are then stored again in the data frame:
+\lstset{firstnumber = 124}
+\begin{lstlisting}
+shareFC = FCTariff/respond
+shareSC = SCTariff/respond
+dat["shareFC"] = shareFC            
+dat["shareSC"] = shareSC
+\end{lstlisting}
+We need dummy variables for the different collective bargaining agreements. We use our already explained function \texttt{dummyfunc} for generating the dummies:
+\lstset{firstnumber = 130}
+\begin{lstlisting}
+noTariffDummy = dummyFunc(dat$ef8 , 1)
+SCTariffDummy = dummyFunc(dat$ef8 , 2)
+FCTariffDummy = dummyFunc(dat$ef8 , 3)
+\end{lstlisting}
+Then we create interaction terms which we need later for our regression analysis:
+\lstset{firstnumber = 138}
+\begin{lstlisting}
+shareFCFC = shareFC*FCTariffDummy
+shareSCSC = shareSC*SCTariffDummy
+\end{lstlisting}
+We need for our regression analysis two variables age squared and experience squared:
+\lstset{firstnumber = 144}
+\begin{lstlisting}
+agesq = dat$ef40*dat$ef40
+expsq = dat$ef41*dat$ef41
+\end{lstlisting}
+The last step in the data preparation part is to calculate the individual wage per employee and the $log$ wage. We set all values where the denominator was zero in line 150 to \texttt{NA} so we do not get any infinity values in our data set:
+\lstset{firstnumber = 150}
+\begin{lstlisting}
+wage   = ifelse(dat$ef18+dat$ef20 == 0, NA, 
+	(dat$ef21+dat$ef22)/(dat$ef18+dat$ef20))
+lnWage = log(wage)
+\end{lstlisting}
+
+\subsection{Testing}
+
+The testing procedure for our code is not so easy because the code is written for a specific data set. It still makes sense when a researcher gets his data set updated frequently and he needs to apply a certain data preparation procedure over and over again. He can write a program like we did and can then always apply the code to the new data set without changing the code.
+However if this code is used by other person it would be helpful to think about possible errors. We included therefore error messages in our functions. In our first function called \texttt{respondFunc} we implemented some error messages for missing data and wrong data input:
+\lstset{firstnumber = 17}
+\begin{lstlisting}
+  if (missing(dat))
+    stop("No data passed to the function")
+  if (is.numeric(dat)!= TRUE)
+    stop("numeric data needed")                       
+\end{lstlisting}
+The first error message proof is a data vector was included in the function header. The second error message shows up when data is passed to the function which is not numeric. The error messages are quite basic due to the fact that the code requires a specific data set as already stated out. In our second function \texttt{dummyFunc} we use similar error messages except the one where we check if any levels are existing in the vector which basically means it is not a dummy variable.
+\lstset{firstnumber = 38}
+\begin{lstlisting}
+ if (missing(dat))
+    stop("No data passed to the function")
+  if(is.null(levels(dat)))
+    stop("No levels found")                   
+\end{lstlisting}
+
+In the second quantlet we implemented three error message in the function which are similar to those from the \texttt{respondFunc}:
+\lstset{firstnumber = 92}
+\begin{lstlisting}
+  if (missing(b))
+    stop("No data passed to the function")
+  if (is.numeric(a)!= TRUE & is.numeric(b)!= TRUE  )
+    stop("numeric data needed")
+  if (missing(c))
+    stop("No level selected")
+  if (c > sum(nlevels(b)))
+    stop("Selected level to large")  
+\end{lstlisting}
+First we check if data is passed to the function or not and if a level is selected. The last error message shows up if a level is selected which is to large. In the following code in quantlet two we apply already explained function \texttt{dummyFunc} and do simple calculations. Calculating the wage we have to pay attention of possible error due to a denominator which could be zero. This would yield to infinity values in our data set. We took care of this problem by simply setting zero values to \texttt{NA}.
+
+\subsection{Conclusion}
+Considering functionality given the specific data set our code from the first quantlet works good. It is helpful as already pointed out when a researcher gets a updated data set frequently. On the other side the \texttt{respondFunc} could be more complex also taking for example data in form of table 4 as input. The \texttt{dummyFunc} could be more complex allowing for different comparison method inside the function (line 40) then just the is equal (\texttt{==}) comparison. Our function forms a foundation and can be further modified if the data sets become more complex, which was not necessary in our case.
+
+The conclusion of our second quantlet is similar to the first one since the second quantlet is a part of the data preparation and the same function is used partially. Again the function \texttt{contractFunc} could be more complex since it can only handle numeric dummies. The function could be modified in a way that it takes names of different contracts as dummy variables. As we already took care of possible infinity values the code can be seen as as sufficiently robust.
