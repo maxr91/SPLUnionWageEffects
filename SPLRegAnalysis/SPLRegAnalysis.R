@@ -122,5 +122,5 @@ averagePartialEffectUQR = data.frame(Quantiles = c("Sector Contract (SC)", "shar
 print(xtable(averagePartialEffectUQR, type = "latex"), file = "averagePartialEffectUQR.tex") 
 
 #calculate confidence intervalls  set for for bootstraping (bigger then 5)
-modelUnconditionalQR.BCI = urqCI(modelUnconditionalQR , R=30)
+modelUnconditionalQR.BCI = urqCI(modelUnconditionalQR , R=30 , seed = NULL , colour = NULL , confidence = NULL , graph = TRUE , cluster = NULL , BC= FALSE )
 
