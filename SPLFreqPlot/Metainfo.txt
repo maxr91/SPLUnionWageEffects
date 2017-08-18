@@ -8,6 +8,6 @@ Keywords:         descriptive statistics, population pyramid,  boxplot,
 
 Author:           Felix Boenisch, Nicole Hermann, Max Reinhardt
 
-See also:         SPLDummyRespond, SPLQuantPlot, SPLSumTable, SPLRegAnalysis
+See also:         SPLDummyRespond, SPLContract, SPLQuantPlot, SPLSumTable, SPLRegAnalysis
 
 Submitted:        friday 18.08.2017, by Felix Boenisch, Nicole Hermann, Max Reinhardt
