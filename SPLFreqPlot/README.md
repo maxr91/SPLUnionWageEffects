@@ -31,257 +31,197 @@ Submitted:        friday 18.08.2017, by Felix Boenisch, Nicole Hermann, Max Rein
 
 ### R Code:
 ```r
-#install and load dplyr- and stargazer-package
+#install and load plotrix-package / neccessary to use pyramid.plot
 
-install.packages("dplyr")
+install.packages("plotrix")
 
-library(dplyr)
+library("plotrix")
 
-install.packages("stargazer")
 
-library(stargazer)
 
+#function to calculate relative frequencies in % table for variable k with l different characteristics
 
+frequency = function(k, l){            
 
-#OLS regression with 4 different specifications
+  if (missing(k))
 
-model1 = lm (lnWage ~ SCTariffDummy + FCTariffDummy  + ef10 + east + ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 
+    stop("No data passed to the function. Variable k has to be defined.")
 
-             + educ3 + shift + ef40 + agesq + ef41 + expsq + permanent , dat )
+  if (missing(l))
 
+    stop("No data passed to the function. Variable l has to be defined.")
 
+  
 
-model2 = lm (lnWage ~ shareSC + shareFC + ef10 + east + ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 + educ3 + shift 
+  100*sweep(table(k,l), 2, colSums(table(k,l)), "/")
 
-             + ef40 + agesq + ef41 + expsq + permanent , dat )
+}  
 
 
 
-model3 = lm (lnWage ~ SCTariffDummy + shareSC + FCTariffDummy + shareFC + ef10 + east + ef9be + ef12be + ef26be + minimumWage 
+#function to build population pyramid and store it as pdf
 
-             + ef9 + educ2 + educ3 + shift + ef40 + agesq + ef41 + expsq + permanent , dat )
+buildpopulation = function(k, l, popname){
 
+  if (missing(popname))
 
+    stop('No data passed to the function. Variable popname has to be defined.
 
-model4 = lm (lnWage ~ SCTariffDummy + shareSC + FCTariffDummy + shareFC + shareSCSC + shareFCFC + ef10 + east + ef9be + ef12be 
+         Please define a plot name such as "populationpyramid.pdf". 
 
-             + ef26be + minimumWage + ef9 + educ2 + educ3 + shift + ef40 + agesq + ef41 + expsq + permanent , dat )
+         Use quotation marks, at the beginning and the end of the plot name.')
 
 
 
-#output table result in latex code
+  pop = frequency(k, l)
 
-stargazer(model1, model2, model3, model4, title="Results OLS Regression" ,  
+  pdf(popname)
 
-          keep = c("SCTariffDummy", "FCTariffDummy", "shareSC" , "shareFC" , "shareSCSC" , "shareFCFC" , "ef10") , 
+  pyramid.plot(pop[,1], pop[,2], labels = rownames(pop), 
 
-          covariate.labels=c("Sectoral Contract","Firm Contract", "share SC","share FC","shareSCxSC","shareFCxFC" , "gender (male = 0)"),
+               gap = 2, lxcol = "blue", rxcol = "red")
 
-          align=TRUE , omit.stat=c("ser","f"),  no.space=TRUE, out = "olsregression.tex")
+  dev.off() 
 
+}
 
 
 
+#subsample with employees covered by the union contract (with FC or SC)
 
-###########################################################################################################################
+datFCSC = dat[ which(SCTariffDummy == 1 | FCTariffDummy == 1),]
 
-############################################## Quantile Regression #########################################################
 
-###########################################################################################################################
 
-#install and load quantreg-package
+#subsample with employees which ar not covered by the union contract (no FC & no SC)
 
-install.packages("quantreg")
+datNoFCSC = dat[ which(SCTariffDummy == 0 & FCTariffDummy == 0),]
 
-library(quantreg)
 
 
+#population pyramid on the whole dataset
 
-#free up additional memory (only for windows users)
+buildpopulation(dat$ef41, dat$ef10, "population_all.pdf")
 
-memory.limit(10000)   
 
 
+#population pyramid of employees covered by the union contract
 
-#delete NAs from lnwage
+buildpopulation(datFCSC$ef41, datFCSC$ef10, "populationFCSC.pdf")
 
-quantileRegressionData   = dat %>% filter(!is.na(lnWage)) 
 
 
+#population pyramid of employees not covered by the union contract
 
-#set quantiles
+buildpopulation(datNoFCSC$ef41, datNoFCSC$ef10, "population-noFCSC.pdf")
 
-quantile = seq(0.05, 0.95, by=0.05)   
 
 
+#calculate arithmetic mean
 
-#Quantile Regression with full data set
+mean(dat$ef41, na.rm = TRUE)          #all population
 
-modelConditionalQR = rq(lnWage ~ SCTariffDummy + shareSC + FCTariffDummy + shareFC + shareFCFC + shareSCSC + ef10 
+mean(datFCSC$ef41, na.rm = TRUE)      #subsample with union covered workers
 
-                        + east+ ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 + educ3 + shift + ef40 + agesq 
+mean(datNoFCSC$ef41, na.rm = TRUE)    #subsample with workers without a union contract
 
-                        + ef41 + expsq + permanent , data=quantileRegressionData, tau = quantile)
 
-quantreg.plot = (summary(modelConditionalQR))
 
+#calculate median
 
+median(dat$ef41, na.rm = TRUE)          #all population
 
-#define a vector of which variables' coefficients should be plotted
+median(datFCSC$ef41, na.rm = TRUE)      #subsample with union covered workers
 
-plotvar = c(1, 2, 3, 4, 5, 6, 7, 8)  
+median(datNoFCSC$ef41, na.rm = TRUE)    #subsample with workers without a union contract
 
-plot(quantreg.plot, parm=plotvar)
 
 
+#function to simultaneously generate a boxplot and save it in the seperate pdf-file
 
-modelConditionalQRCoef = modelConditionalQR[1]
+buildboxplot =  function (v, w , boxname, z){
 
-modelConditionalQRCoef = as.data.frame(modelConditionalQRCoef)
+  if (missing(v))
 
+    stop("No data passed to the function. Variable v has to be defined.")
 
+  if (missing(w))
 
-#build vector with share for later calculation of the effects
+    stop("No data passed to the function. Variable w has to be defined.")
 
-calcAverage = c(lnWageSummaryTotal$TotalEmpolyeeShare[1],      
+  if (missing(z))
 
-                lnWageSummaryTotal$TotalEmpolyeeShare[1],
+    stop("No data passed to the function. Variable z has to be defined.
 
-                lnWageSummaryTotal$TotalEmpolyeeShare[2],
+         z is a vector which should contain labels for the characteristics of the variable w.
 
-                lnWageSummaryTotal$TotalEmpolyeeShare[2])
+         The number of the characteristics of w must equal the number of elements in z.")
 
+  if (missing(boxname))
 
+    stop('No data passed to the function.boxname has to be defined such as "graph.pdf".') 
 
-#build data frame with results from conditional quantile regression
+  if (is.numeric(v)!= TRUE)
 
-calcAverageCoefCQRSCSCFCFCQR = data.frame(tau10 = c(modelConditionalQRCoef[7, 2],  modelConditionalQRCoef[7, 2],    
+    stop("Numeric data needed. k has to be a numeric variable.")
 
-                                                    modelConditionalQRCoef[6, 2],  modelConditionalQRCoef[6, 2]),
 
-                                          tau25 = c(modelConditionalQRCoef[7, 5],  modelConditionalQRCoef[7, 5],
 
-                                                    modelConditionalQRCoef[6, 5],  modelConditionalQRCoef[6, 5]),
+  pdf(boxname, width = 11, height = 7)
 
-                                          tau50 = c(modelConditionalQRCoef[7, 10], modelConditionalQRCoef[7, 10],
+  boxplot(v~w, range=2.5, width=NULL, notch=FALSE,varwidth=FALSE, names = z,
 
-                                                    modelConditionalQRCoef[6, 10], modelConditionalQRCoef[6, 10]),
+          boxwex=0.8, outline=FALSE, staplewex=0.5, horizontal=FALSE, border="black", 
 
-                                          tau75 = c(modelConditionalQRCoef[7, 15], modelConditionalQRCoef[7, 15],
+          col="#94d639", add=FALSE, at=NULL)
 
-                                                    modelConditionalQRCoef[6, 15], modelConditionalQRCoef[6, 15]),
+  abline(h = median(v, na.rm = TRUE), col="red", lwd = 1.5)
 
-                                          tau90 = c(modelConditionalQRCoef[7, 18], modelConditionalQRCoef[7, 18],
+  dev.off()
 
-                                                    modelConditionalQRCoef[6, 18], modelConditionalQRCoef[6, 18]))
+}
 
 
 
-#calculate average partial effects
+#define a vector with label names for gender and education
 
-averagePartialEffectQR = data.frame(Quantiles = c("Sector Contract (SC)", "shareSC", "Firm Contract (FC)", "shareFC"),
+genderLAB = c("male", "female")
 
-                                    tau10 = modelConditionalQRCoef[2:5, 2]  + (calcAverage * calcAverageCoefCQRSCSCFCFCQR$tau10),    
+educLAB = c("Educ A", "Educ B", "Educ C", "Educ D", "Educ E", "Educ F", "Educ G")
 
-                                    tau25 = modelConditionalQRCoef[2:5, 5]  + (calcAverage * calcAverageCoefCQRSCSCFCFCQR$tau25),
 
-                                    tau50 = modelConditionalQRCoef[2:5, 10] + (calcAverage * calcAverageCoefCQRSCSCFCFCQR$tau50),
 
-                                    tau75 = modelConditionalQRCoef[2:5, 15] + (calcAverage * calcAverageCoefCQRSCSCFCFCQR$tau75),
+#boxplot ln(wage)~gender of all employees
 
-                                    tau90 = modelConditionalQRCoef[2:5, 18] + (calcAverage * calcAverageCoefCQRSCSCFCFCQR$tau90))                                                 
+buildboxplot(dat$lnWage, dat$ef10, "boxplot_lnwage_gen.pdf", genderLAB)
 
 
 
-#print table in latex code
+#boxplot ln(wage)~education of all employees 
 
-print(xtable(averagePartialEffectQR, type = "latex"), file = "averagePartialEffectsCQR.tex")
+buildboxplot(dat$lnWage, dat$ef16u2, "boxplot_lnwage_educ.pdf", educLAB)
 
 
 
-###########################################################################################################################
+#boxplot ln(wage)~education of employees which are covered by an union contract 
 
-########################################## Uncondtional Quantil Regression ################################################
+buildboxplot(datFCSC$lnWage, datFCSC$ef16u2, "boxploteducFCSC.pdf", educLAB)
 
-###########################################################################################################################
 
-#install and load uqr-package
 
-install.packages("uqr")
+#boxplot ln(wage)~education of employees which are not covered by an union contract
 
-library(uqr)
+buildboxplot(datNoFCSC$lnWage, datNoFCSC$ef16u2, "boxploteduc-NoFCSC.pdf", educLAB)
 
 
 
-quantile2=c(0.1, 0.25, 0.5, 0.75, 0.9)
+#calculate median of the variable ln(wage)
 
-modelUnconditionalQR = urq(lnWage ~  SCTariffDummy + shareSC + FCTariffDummy + shareFC + shareFCFC + shareSCSC + ef10 
+median(dat$lnWage, na.rm = TRUE)
 
-                           + east + ef9be + ef12be + ef26be + minimumWage + ef9 + educ2 + educ3 + shift + ef40 + agesq 
+median(datFCSC$lnWage, na.rm = TRUE)
 
-                           + ef41 + expsq + permanent, data=quantileRegressionData, tau = quantile2 )
-
-
-
-#calculate average partial effects for unconditional quantile regression:
-
-modelUnconditionalQRCoef = modelUnconditionalQR[1]
-
-modelUnconditionalQRCoef = as.data.frame(modelUnconditionalQRCoef)
-
-
-
-#build data frame with results from unconditional quantile regression
-
-calcAverageCoefUQRSCSCFCFC = data.frame(tau10 = c(modelUnconditionalQRCoef[7, 1], modelUnconditionalQRCoef[7, 1],    
-
-                                                  modelUnconditionalQRCoef[6, 1], modelUnconditionalQRCoef[6, 1]),
-
-                                        tau25 = c(modelUnconditionalQRCoef[7, 2], modelUnconditionalQRCoef[7, 2],
-
-                                                  modelUnconditionalQRCoef[6, 2], modelUnconditionalQRCoef[6, 2]),
-
-                                        tau50 = c(modelUnconditionalQRCoef[7, 3], modelUnconditionalQRCoef[7, 3],
-
-                                                  modelUnconditionalQRCoef[6, 3], modelUnconditionalQRCoef[6, 3]),
-
-                                        tau75 = c(modelUnconditionalQRCoef[7, 4], modelUnconditionalQRCoef[7, 4],
-
-                                                  modelUnconditionalQRCoef[6, 4], modelUnconditionalQRCoef[6, 4]),
-
-                                        tau90 = c(modelUnconditionalQRCoef[7, 5], modelUnconditionalQRCoef[7, 5],
-
-                                                  modelUnconditionalQRCoef[6, 5], modelUnconditionalQRCoef[6, 5]))
-
-
-
-#calculate average partial effects
-
-averagePartialEffectUQR = data.frame(Quantiles = c("Sector Contract (SC)", "shareSC", "Firm Contract (FC)", "shareFC"),
-
-                                     tau10 = modelUnconditionalQRCoef[2:5, 1] + (calcAverage * calcAverageCoefUQRSCSCFCFC$tau10),    
-
-                                     tau25 = modelUnconditionalQRCoef[2:5, 2] + (calcAverage * calcAverageCoefUQRSCSCFCFC$tau25),
-
-                                     tau50 = modelUnconditionalQRCoef[2:5, 3] + (calcAverage * calcAverageCoefUQRSCSCFCFC$tau50),
-
-                                     tau75 = modelUnconditionalQRCoef[2:5, 4] + (calcAverage * calcAverageCoefUQRSCSCFCFC$tau75),
-
-                                     tau90 = modelUnconditionalQRCoef[2:5, 5] + (calcAverage * calcAverageCoefUQRSCSCFCFC$tau90))                                                 
-
-
-
-#print table in latex code
-
-print(xtable(averagePartialEffectUQR, type = "latex"), file = "averagePartialEffectUQR.tex") 
-
-
-
-#calculate confidence intervalls  set for for bootstraping (bigger then 5)
-
-modelUnconditionalQR.BCI = urqCI(modelUnconditionalQR , R=30 , seed = NULL , colour = NULL , confidence = NULL , graph = TRUE , cluster = NULL , BC= FALSE )
-
-
+median(datNoFCSC$lnWage, na.rm = TRUE)
 
 
 ```
