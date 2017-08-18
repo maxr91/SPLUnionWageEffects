@@ -85,7 +85,7 @@ print(xtable(averagePartialEffectQR, type = "latex"), file = "averagePartialEffe
 ###########################################################################################################################
 ########################################## Uncondtional Quantil Regression ################################################
 ###########################################################################################################################
-#install and load uuqr-package
+#install and load uqr-package
 install.packages("uqr")
 library(uqr)
 
