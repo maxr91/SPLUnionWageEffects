@@ -1,0 +1,11 @@
+Name of Quantlet: NAMEN EINTRAGEN!!!
+
+Description: First part of the data preparation.
+
+Keywords: data preparation, data import, create dummies, convert dummies
+
+Author: Felix Boenisch, Nicole Hermann, Max Reinhardt
+
+See also: HIER DEN NAMEN DER ANDEREN QUANTLETS REINMACHEN
+
+Submitted:  friday 18.08.2017
