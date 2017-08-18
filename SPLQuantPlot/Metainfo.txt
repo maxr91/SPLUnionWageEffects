@@ -1,5 +1,7 @@
 Name of Quantlet: SPLQuantPlot
 
+Published in:     Union Wage Effects in Germany - Implications for the Wage Distribution
+
 Description:      Second part of the descriptive statistics.
 
 Keywords:         descriptive statistics,  scatterplot,  calculate quantiles, 
