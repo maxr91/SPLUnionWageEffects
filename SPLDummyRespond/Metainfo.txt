@@ -1,4 +1,4 @@
-Name of Quantlet: NAMEN EINTRAGEN!!!
+Name of Quantlet: SPLDummyRespond
 
 Description: First part of the data preparation.
 
